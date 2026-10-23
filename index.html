@@ -250,7 +250,7 @@ function refreshPreview(){var e=document.getElementById("bgPreview");if(e){var d
 function rowC(c){
   var a=ac(c),t=c.r,card=isCardAcct(c.id);
   if(card)return '<div class="item account-item"><div class="row"><b>💳 '+esc(c.n)+'</b><span class="amt '+(a.d<0?"or":"ok")+'>'+f(a.d)+'</span></div><div class="tag card-summary"><div>Crédito disponible · límite '+f(S.tc.lim||0)+'</div><div>Salidas '+f(cardSpent())+' · pagos '+f(cardPaid())+'</div></div></div>';
-  return '<div class="item account-item"><div class="row"><b>'+(t?"🔒 ":"")+esc(c.n)+'</b><span class="amt '+(t?"":a.d<0?"or":"ok")+'">'+f(t?a.ret:a.d)+'</span></div><div class="tag">'+(t?'Retenido (no se toca) · consumo en tarjeta '+f(a.cons):'Ingresos '+f(a.b.a+a.b.b)+' · gastados '+f(a.b.g))+'</div><div class="row" style="justify-content:flex-end">'+(t?'<button class="ghost" onclick="liberar(\''+c.id+'\')">Liberar y pagar tarjeta</button>':'')+'</div></div>'}
+  return '<div class="item account-item"><div class="row"><b>'+(t?"🔒 ":"")+esc(c.n)+'</b><span class="amt '+(t?"":a.d<0?"or":"ok")+'">'+f(t?a.ret:a.d)+'</span></div><div class="tag">'+(t?'Retenido (no se toca) · consumo en tarjeta '+f(a.cons):'Ingresos '+f(a.b.a+a.b.b)+' · gastados '+f(a.b.g))+'</div></div>'}
 function grpRow(g){
   var m=g.ids.map(function(i){return by(S.cfg.cuentas,i)}).filter(Boolean),d=R(m.reduce(function(t,c){var a=ac(c);return t+a.d+a.ret},0)),k="sg"+g.id;
   return '<div class="item">'+hd(k,"👥 "+esc(g.n),'Total de las cuentas <b class="'+(d<0?"or":"ok")+'">'+f(d)+'</b> · '+m.length+' cuentas',true)+(V.o[k]?m.map(rowC).join(""):'')+'</div>'}
@@ -375,7 +375,7 @@ function tarjeta(){
   if(!isO("tj"))return h+'</div>';
   h+='<div class="sub"><label class="lb">Cuenta asignada a la tarjeta de crédito</label><select onchange="setCardAccount(this.value)"><option value="">Seleccionar cuenta…</option>'+op(S.cfg.cuentas,t.cta||"")+'</select><div class="kv"><span>Límite de la tarjeta</span><input class="num" type="number" inputmode="decimal" step="0.01" value="'+t.lim+'" onchange="S.tc.lim=+this.value||0;save();draw()"></div></div>';
   if(st){h+=kv("Total de salidas con tarjeta",f(st.spent===undefined?st.cons:st.spent))+kv("Total de pagos registrados",f(st.paid===undefined?sum(S.tcp):st.paid))+kv("Saldo pendiente de pago",f(st.card?cardDebt():st.cons))+kv("Crédito disponible",f(st.card?Math.max(0,(t.lim||0)-cardDebt()):Math.max(0,(t.lim||0)-st.cons-vc.r)));
-    if(!st.card)st.rc.forEach(function(c){var a=ac(c);h+='<div class="row" style="padding:4px 0"><span class="tag">🔒 '+esc(c.n)+' · retenido '+f(a.ret)+'</span><button class="alt" style="padding:6px 10px;font-size:14px;flex:0 0 auto" onclick="liberar(\''+c.id+'\')">Liberar y pagar</button></div>'})}
+    }
   if(vc.r)h+=kv("Visacuotas restantes",f(vc.r))+kv("Cuotas del mes",f(vc.m));
   if(t.lim&&!t.cta)h+=kv("Disponible en la tarjeta",f(R(t.lim-(st?st.cons:0)-vc.r)));
   h+='<div class="sub">'+hd("tp","Cortes y pagos",S.tcp.length+" · "+f(sum(S.tcp)),true);
