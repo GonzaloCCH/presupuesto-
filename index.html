@@ -83,7 +83,7 @@ header#top button.on .ic{transform:translateY(-1px) scale(1.07)}
 .grid{gap:10px;margin-bottom:10px}
 .account-item{padding:4px 0}
 .account-item>.row{padding:2px 0}
-.account-item .tag{line-height:1.35;white-space:normal;overflow-wrap:anywhere;word-break:normal;max-width:100%;min-width:0}.account-item{min-width:0;max-width:100%;overflow-wrap:anywhere}.account-item .row{min-width:0;flex-wrap:wrap}.account-item .row>*{min-width:0;max-width:100%}.card-summary{font-weight:400!important;font-size:13px!important;display:flex;flex-direction:column;gap:2px;white-space:normal;overflow-wrap:anywhere;max-width:100%;min-width:0}.card-summary div{font-weight:400!important;max-width:100%;min-width:0}
+.account-item .tag{line-height:1.35;white-space:normal;overflow-wrap:anywhere;word-break:normal;max-width:100%;min-width:0}.account-item{min-width:0;max-width:100%;overflow-wrap:anywhere}.account-item .row{min-width:0;flex-wrap:wrap}.account-item .row>*{min-width:0;max-width:100%}.card-summary{font-weight:400!important;font-size:12px!important;line-height:1.35;color:var(--mut)!important;display:block;white-space:normal;overflow-wrap:anywhere;word-break:normal;max-width:100%;min-width:0}.card-summary div{font-weight:400!important;color:var(--mut)!important;max-width:100%;min-width:0}
 
 /* Interfaz moderna y adaptable */
 :root{--bg:#F3F6FB;--card:#FFFFFF;--ink:#142238;--mut:#68788E;--line:#DCE4EF;--acc:#174A7E;--accbg:#E7F0FB;--ok:#167344;--rd:#C83232;--or:#C56A12;color-scheme:light}
@@ -249,7 +249,7 @@ function refreshPreview(){var e=document.getElementById("bgPreview");if(e){var d
 /* inicio */
 function rowC(c){
   var a=ac(c),t=c.r,card=isCardAcct(c.id);
-  if(card)return '<div class="item account-item"><div class="row"><b>💳 '+esc(c.n)+'</b><span class="amt '+(a.d<0?"or":"ok")+'>'+f(a.d)+'</span></div><div class="tag card-summary"><div>Crédito disponible · límite '+f(S.tc.lim||0)+'</div><div>Salidas '+f(cardSpent())+' · pagos '+f(cardPaid())+'</div></div></div>';
+  if(card)return '<div class="item account-item"><div class="row"><b>💳 '+esc(c.n)+'</b><span class="amt '+(a.d<0?"or":"ok")+'>'+f(a.d)+'</span></div><div class="tag card-summary">Límite '+f(S.tc.lim||0)+' · salidas '+f(cardSpent())+' · pagos '+f(cardPaid())+'</div></div>';
   return '<div class="item account-item"><div class="row"><b>'+(t?"🔒 ":"")+esc(c.n)+'</b><span class="amt '+(t?"":a.d<0?"or":"ok")+'">'+f(t?a.ret:a.d)+'</span></div><div class="tag">'+(t?'Retenido (no se toca) · consumo en tarjeta '+f(a.cons):'Ingresos '+f(a.b.a+a.b.b)+' · gastados '+f(a.b.g))+'</div></div>'}
 function grpRow(g){
   var m=g.ids.map(function(i){return by(S.cfg.cuentas,i)}).filter(Boolean),d=R(m.reduce(function(t,c){var a=ac(c);return t+a.d+a.ret},0)),k="sg"+g.id;
