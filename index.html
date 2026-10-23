@@ -110,6 +110,9 @@ header#top .ic{width:30px;height:30px}
 .stp{border-radius:13px}
 @media(min-width:520px){main{padding-left:18px;padding-right:18px}.card{padding:18px}}
 
+
+/* Inicio por tarjetas y acciones de edición */
+.homehero{padding:22px 8px 18px;text-align:center}.homehero h1{margin:0 0 5px;color:var(--acc);font-size:27px}.homegrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:12px 0 18px}.hometile{min-height:118px;border-radius:24px;border:1px solid var(--line);background:var(--acc);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;box-shadow:0 8px 22px #14202e12}.hometile span{font-size:30px}.hometile b{font-size:16px}.homeactions{margin-bottom:14px}.item-editable{position:relative;padding-right:34px}.delete-x{position:absolute;right:7px;top:7px;width:25px;height:25px;padding:0;border-radius:50%;background:var(--rd);color:#fff;border:0;font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center}.ef{padding-right:0}.section-back{width:100%;text-align:left;margin:0 0 12px;background:var(--card);color:var(--acc);border:1px solid var(--line)}#top{display:none!important}
 </style>
 </head>
 <body>
@@ -199,13 +202,13 @@ function head(){return '<div class="grid"><input type="month" value="'+V.mes+'" 
 /* líneas */
 function lineP(x){
   var g=by(S.cfg.gastos,x.g)||{n:"(eliminado)"},p=P(x.g,x.k),u=U(x.g,x.k),s=stt(p,u),low=s.so>0&&s.so<=p*0.2;
-  return '<div class="item"><div class="row" onclick="ted(\'plan:'+x.id+'\')" style="cursor:pointer"><b class="'+s.c+'">'+esc(g.n)+'</b><span class="amt">'+f(x.m)+'</span></div><div class="tag">'+s.t+(low?' · por agotarse':'')+' · Salida '+f(u)+' · Sobra '+f(s.so)+'</div>'+(V.ed==="plan:"+x.id?form("plan",x,FP()):'')+'</div>'}
+  return '<div class="item item-editable"><button class="delete-x" title="Eliminar gasto" onclick="event.stopPropagation();rm(\'plan\',\''+x.id+'\')">×</button><div class="row" onclick="ted(\'plan:'+x.id+'\')" style="cursor:pointer"><b class="'+s.c+'">'+esc(g.n)+'</b><span class="amt">'+f(x.m)+'</span></div><div class="tag">'+s.t+(low?' · por agotarse':'')+' · Salida '+f(u)+' · Sobra '+f(s.so)+'</div>'+(V.ed==="plan:"+x.id?form("plan",x,FP()):'')+'</div>'}
 function salRows(all){var ac={};return S.sal.filter(function(x){return all||x.k===key()}).map(function(x){var kk=x.g+"|"+x.k;ac[kk]=(ac[kk]||0)+x.m;var p=x.sob?0:P(x.g,x.k);return {x:x,p:p,a:ac[kk],s:stt(p,ac[kk])}})}
 function lineS(r){
   var x=r.x,g=by(S.cfg.gastos,x.g)||{n:"(eliminado)"},name=x.gn||g.n;
-  return '<div class="item"><div class="row" onclick="ted(\'sal:'+x.id+'\')" style="cursor:pointer"><b class="'+(x.sob?'or':r.s.c)+'">'+esc(name)+'</b><span class="amt">'+f(x.m)+'</span></div>'
+  return '<div class="item item-editable"><button class="delete-x" title="Eliminar salida" onclick="event.stopPropagation();rm(\'sal\',\''+x.id+'\')">×</button><div class="row" onclick="ted(\'sal:'+x.id+'\')" style="cursor:pointer"><b class="'+(x.sob?'or':r.s.c)+'">'+esc(name)+'</b><span class="amt">'+f(x.m)+'</span></div>'
    +'<div class="tag">'+(x.sob?'Salida del sobrante':r.s.t)+' · '+fd(x.f)+' · '+nmx(S.cfg.cuentas,x.p)+(x.sb?' · del sobrante':'')+(x.nt?' · '+esc(x.nt):'')+(V.all?' · '+nom(x.k):'')+'</div>'
-   +(x.sob?'<div class="tag">Sobrante disponible en cuenta: '+f(surplusAcct(x.p))+'</div>':'<div class="tag">Presupuesto '+f(r.p)+' · acumulado '+f(r.a)+' · sobrante '+f(r.s.so)+'</div>')+(V.ed==="sal:"+x.id?form("sal",x,FP()):'')+'</div>'}
+   +(x.sob?'<div class="tag">Sobrante disponible en cuenta: '+f(surplusAcct(x.p))+'</div>':'<div class="tag">Presupuesto '+f(r.p)+' · acumulado '+f(r.a)+' · sobrante '+f(r.s.so)+'</div>')+(V.ed==="sal:"+x.id?(x.sob?form("sal",x,[["gn","Nombre del gasto","t"],["c","Categoría","s",S.cfg.cats],["t","Tipo","s",S.cfg.tipos],["m","Monto","n"],["p","Cuenta","s",S.cfg.cuentas],["f","Fecha","d"],["nt","Notas","t"]]):form("sal",x,FP())):'')+'</div>'}
 function backPreview(){
   if(!V.sheet)return "";
   if(V.sheet==="p"){
@@ -233,10 +236,11 @@ function saldoCard(){
     h+=kv("Disponible total",f(tot))+(st?kv("Retenido para la tarjeta",f(st.ret))+kv("Consumo en tarjeta",f(st.cons)):'')}
   return h+'</div>'}
 function ini(){
-  var c=S.cfg,h=saldoCard()+head();
-  if(!c.gastos.length||!c.cuentas.length)h+='<div class="card"><b>Empieza aquí</b><div class="tag" style="margin:6px 0 10px">Crea primero tus categorías, tipos de gasto, cuentas y gastos en Ajustes. Después solo los eliges al registrar.</div><button style="width:100%" onclick="go(\'aju\')">Ir a Ajustes</button></div>';
-  else h+='<div class="tag" style="text-align:center;padding:8px">Usa ＋ Presupuesto y ＋ Salida, abajo, para registrar.</div>';
-  return h}
+  var c=S.cfg,tiles=[['res','📊','Resumen'],['pre','📋','Presupuesto'],['sal','💸','Salidas'],['cue','🏦','Cuentas'],['deu','🧾','Deudas'],['fij','📌','Gastos fijos'],['aju','⚙️','Ajustes']],h='<div class="homehero"><h1>Presupuesto 2</h1><div class="tag">Control de tu dinero</div></div><div class="homegrid">';
+  tiles.forEach(function(t){h+='<button class="hometile" onclick="go(\''+t[0]+'\')"><span>'+t[1]+'</span><b>'+t[2]+'</b></button>'});
+  h+='</div><div class="grid homeactions"><button onclick="openSh(\'p\')">＋ Nuevo presupuesto</button><button class="alt" onclick="openSh(\'s\')">＋ Nueva salida</button></div>';
+  return h+saldoCard()+head();
+}
 /* formularios (hoja inferior) */
 function sheet(){
   if(!V.sheet)return"";
@@ -456,14 +460,15 @@ function draw(){
   var T={ini:ini,res:res,pre:pre,sal:sal,cue:cue,deu:deu,fij:fij,aju:aju},m={},ap=document.getElementById("app"),sh=document.getElementById("sheet"),tp=document.getElementById("top"),isF=/^(INPUT|SELECT|TEXTAREA)$/;
   if(document.querySelectorAll)document.querySelectorAll("#app [id],#sheet [id]").forEach(function(e){if(isF.test(e.tagName))m[e.id]=e.value});
   ap.innerHTML=T[V.tab]();
+  if(V.tab!=="ini")ap.innerHTML='<button class="section-back" onclick="go(\'ini\')">← Inicio</button>'+ap.innerHTML;
   if(V.sheet)ap.innerHTML=backPreview()+ap.innerHTML;
   sh.innerHTML=sheet();sh.className=V.sheet?"on":"";
   for(var i in m){var e=document.getElementById(i);if(e&&e.tagName&&isF.test(e.tagName))e.value=m[i]}
   if(document.getElementById("si"))sinfo();
   if(document.getElementById("sbi"))sbinfo();
   var th=document.getElementById("themePick");if(th){try{th.value=localStorage.getItem("presupuesto2-theme")||"system"}catch(e){th.value="system"}}
-  tp.className="st-"+S.ui.st;
-  tp.innerHTML=IC.map(function(t){return '<button class="'+(V.tab===t[0]?"on":"")+'" onclick="go(\''+t[0]+'\')"><span class="ic" style="'+cv(ucol(t[0]))+'">'+t[1]+'</span>'+t[2]+'</button>'}).join("")}
+  tp.className="st-"+S.ui.st;tp.innerHTML="";
+}
 /* Deslizar horizontalmente para cambiar de pestaña sin tocar la barra */
 var swipeStart=null;
 document.addEventListener("touchstart",function(e){
@@ -473,9 +478,9 @@ document.addEventListener("touchstart",function(e){
   swipeStart={x:e.touches[0].clientX,y:e.touches[0].clientY};
 },{passive:true});
 document.addEventListener("touchend",function(e){
-  if(!swipeStart||V.sheet||!e.changedTouches||!e.changedTouches.length){swipeStart=null;return;}
+  if(true||!swipeStart||V.sheet||!e.changedTouches||!e.changedTouches.length){swipeStart=null;return;}
   var dx=e.changedTouches[0].clientX-swipeStart.x,dy=e.changedTouches[0].clientY-swipeStart.y;swipeStart=null;
-  if(Math.abs(dx)<65||Math.abs(dx)<Math.abs(dy)*1.35)return;
+  if(Math.abs(dx)<65||Math.abs(dx)<Math.abs(dy)*1.35)return;return;
   var idx=IC.findIndex(function(t){return t[0]===V.tab;});
   var next=idx+(dx<0?1:-1);
   if(next>=0&&next<IC.length)go(IC[next][0]);
