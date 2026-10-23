@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" id="viewportMeta" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Presupuesto 2</title>
 <meta name="theme-color" content="#2457D6">
@@ -468,9 +468,17 @@ function brandSet(field,value){S.ui=S.ui||{};S.ui.brand=S.ui.brand||{};S.ui.bran
 function tileSet(k,field,value){S.ui=S.ui||{};S.ui.tiles=S.ui.tiles||{};S.ui.tiles[k]=S.ui.tiles[k]||{};S.ui.tiles[k][field]=value;save();draw();}
 function tileImage(k,input){var file=input.files&&input.files[0];if(!file)return;if(file.size>1500000){msg('Elige una imagen de menos de 1.5 MB.');input.value='';return}var rd=new FileReader();rd.onload=function(){tileSet(k,'image',rd.result)};rd.readAsDataURL(file)}
 function aju(){
-  return '<div class="card"><h2>🎨 Apariencia</h2><div class="tag" style="margin-bottom:8px">Elige el fondo y los colores de la aplicación.</div><label class="lb" for="themePick">Tema de color</label><select id="themePick" onchange="setTheme(this.value)"><option value="light">Claro · blanco</option><option value="dark">Oscuro</option><option value="blue">Azul</option><option value="system">Automático del dispositivo</option></select></div><div class="tag" style="margin-bottom:10px">Lo que agregues, cambies o elimines aquí aparece solo en todas las pantallas.</div>'
+  S.ui=S.ui||{};
+  return '<div class="card"><h2>📱 Zoom de pantalla</h2><div class="tag" style="margin-bottom:8px">Evita que la pantalla se amplíe accidentalmente con los dedos.</div><label style="display:flex;align-items:center;gap:10px;padding:8px 0"><input type="checkbox" style="width:22px;height:22px" ' +(S.ui.disableZoom?'checked ':'')+ 'onchange="toggleZoom(this.checked)"><span>Bloquear zoom de la aplicación</span></label><div class="tag">Puedes desactivarlo aquí cuando necesites ampliar el contenido.</div></div><div class="card"><h2>🎨 Apariencia</h2><div class="tag" style="margin-bottom:8px">Elige el fondo y los colores de la aplicación.</div><label class="lb" for="themePick">Tema de color</label><select id="themePick" onchange="setTheme(this.value)"><option value="light">Claro · blanco</option><option value="dark">Oscuro</option><option value="blue">Azul</option><option value="system">Automático del dispositivo</option></select></div><div class="tag" style="margin-bottom:10px">Lo que agregues, cambies o elimines aquí aparece solo en todas las pantallas.</div>'
    +cl("cats","Categorías")+cl("tipos","Tipos de gasto")+cl("cuentas","Cuentas, métodos de pago y entidades")+ret()+gr()+cl("gastos","Gastos (nombre, categoría y tipo)")+cl("ubic","Ubicaciones de deudas")+tileSettings()+icCard()
    +'<div class="card"><h2>Respaldo y exportar</h2><div class="tag" style="margin-bottom:8px">Copia tus datos para guardarlos en Notas. Para Excel, pega los gastos en una hoja.</div><button style="width:100%;margin-bottom:8px" onclick="copyText(JSON.stringify(S),\'Respaldo copiado\')">Copiar respaldo completo</button><button style="width:100%;margin-bottom:12px" onclick="copyTsv()">Copiar gastos para Excel</button><textarea id="rs" placeholder="Pega aquí un respaldo para restaurarlo"></textarea><button class="ghost" style="width:100%;border:1px solid var(--line)" onclick="restaurar()">Restaurar respaldo (reemplaza todo)</button></div><div class="tag" style="text-align:center;margin-top:6px">Versión 5</div>'}
+function toggleZoom(enabled){
+  S.ui=S.ui||{};S.ui.disableZoom=!!enabled;save();applyZoomSetting();draw();
+}
+function applyZoomSetting(){
+  var m=document.getElementById("viewportMeta");if(!m)return;
+  m.setAttribute("content",(S&&S.ui&&S.ui.disableZoom)?"width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover":"width=device-width, initial-scale=1, viewport-fit=cover");
+}
 function setTheme(v){
   try{localStorage.setItem("presupuesto2-theme",v)}catch(e){}
   applyTheme();draw();
@@ -481,7 +489,7 @@ function applyTheme(){
   if(v==="system")root.removeAttribute("data-theme");else root.setAttribute("data-theme",v);
   var m=document.querySelector('meta[name="theme-color"]');if(m)m.content=v==="dark"?"#0C1422":v==="blue"?"#145DA0":"#F3F6FB";
 }
-applyTheme();
+applyTheme();applyZoomSetting();
 function draw(){
   var T={ini:ini,res:res,pre:pre,sal:sal,cue:cue,deu:deu,fij:fij,aju:aju},m={},ap=document.getElementById("app"),sh=document.getElementById("sheet"),tp=document.getElementById("top"),isF=/^(INPUT|SELECT|TEXTAREA)$/;
   if(document.querySelectorAll)document.querySelectorAll("#app [id],#sheet [id]").forEach(function(e){if(isF.test(e.tagName))m[e.id]=e.value});
