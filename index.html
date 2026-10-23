@@ -131,6 +131,9 @@ html,body{max-width:100%;overflow-x:hidden}main,.card,.sub,.item,.account-item{m
 .customize-drop[open]>summary:after{content:'⌃'}
 .brand-edit{padding:8px 0 12px;border-bottom:1px solid var(--line);margin-bottom:8px}
 @media(min-width:520px){.card{padding:13px}}
+
+/* Correcciones de diseño: integradas dentro de CSS */
+*{box-sizing:border-box}html,body,#app,main{width:100%;max-width:100%;overflow-x:hidden}main{padding-left:12px;padding-right:12px}.card,.sub,.item,.row,.grid,.kv,.account-item{min-width:0;max-width:100%}.card{padding:9px;margin-bottom:6px}.sub{margin-top:3px;padding-top:3px}.item{padding:3px 0}.kv{padding:3px 0;gap:6px}.grid{gap:6px;margin:5px 0}.hd{padding:4px 0;gap:6px}.tag{line-height:1.3}.account-item .row{gap:5px}.card-summary,.card-summary *{font-weight:400!important}.delete-x{position:static;flex:0 0 18px;margin-left:4px;font-weight:400!important}
 </style>
 </head>
 <body>
@@ -537,9 +540,9 @@ document.addEventListener("touchstart",function(e){
   swipeStart={x:e.touches[0].clientX,y:e.touches[0].clientY};
 },{passive:true});
 document.addEventListener("touchend",function(e){
-  if(true||!swipeStart||V.sheet||!e.changedTouches||!e.changedTouches.length){swipeStart=null;return;}
+  if(!swipeStart||V.sheet||!e.changedTouches||!e.changedTouches.length){swipeStart=null;return;}
   var dx=e.changedTouches[0].clientX-swipeStart.x,dy=e.changedTouches[0].clientY-swipeStart.y;swipeStart=null;
-  if(Math.abs(dx)<65||Math.abs(dx)<Math.abs(dy)*1.35)return;return;
+  if(Math.abs(dx)<65||Math.abs(dx)<Math.abs(dy)*1.35)return;
   var idx=IC.findIndex(function(t){return t[0]===V.tab;});
   var next=idx+(dx<0?1:-1);
   if(next>=0&&next<IC.length)go(IC[next][0]);
@@ -549,6 +552,3 @@ if("serviceWorker" in navigator){window.addEventListener("load",function(){navig
 </script>
 </body>
 </html>
-
-/* Correcciones solicitadas: diseño compacto y adaptable */
-*{box-sizing:border-box}html,body,#app,main{width:100%;max-width:100%;overflow-x:hidden}main{padding-left:12px;padding-right:12px}.card,.sub,.item,.row,.grid,.kv,.account-item{min-width:0;max-width:100%}.card{padding:9px;margin-bottom:6px}.sub{margin-top:3px;padding-top:3px}.item{padding:3px 0}.kv{padding:3px 0;gap:6px}.grid{gap:6px;margin:5px 0}.hd{padding:4px 0;gap:6px}.tag{line-height:1.3}.account-item .row{gap:5px}.card-summary,.card-summary *{font-weight:400!important}.delete-x{position:static;flex:0 0 18px;margin-left:4px;font-weight:400!important}
