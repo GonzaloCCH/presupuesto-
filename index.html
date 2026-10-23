@@ -134,6 +134,15 @@ html,body{max-width:100%;overflow-x:hidden}main,.card,.sub,.item,.account-item{m
 
 /* Correcciones de diseño: integradas dentro de CSS */
 *{box-sizing:border-box}html,body,#app,main{width:100%;max-width:100%;overflow-x:hidden}main{padding-left:12px;padding-right:12px}.card,.sub,.item,.row,.grid,.kv,.account-item{min-width:0;max-width:100%}.card{padding:9px;margin-bottom:6px}.sub{margin-top:3px;padding-top:3px}.item{padding:3px 0}.kv{padding:3px 0;gap:6px}.grid{gap:6px;margin:5px 0}.hd{padding:4px 0;gap:6px}.tag{line-height:1.3}.account-item .row{gap:5px}.card-summary,.card-summary *{font-weight:400!important}.delete-x{position:static;flex:0 0 18px;margin-left:4px;font-weight:400!important}
+
+/* Ajustes móviles: evitar que controles y formularios salgan de las tarjetas */
+html,body,#app,main,.card,.sub,.sh,.grid,.row,.kv{box-sizing:border-box;min-width:0;max-width:100%}
+.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid>*{width:100%;min-width:0;max-width:100%}
+select,input,textarea{min-width:0;max-width:100%}
+.sh{overflow-x:hidden}
+.kv>span:first-child{min-width:0;overflow-wrap:anywhere}.kv>*{min-width:0}
+@media(max-width:390px){.card{padding:9px}.sh{padding-left:12px;padding-right:12px}.grid{gap:6px}}
 </style>
 </head>
 <body>
@@ -200,8 +209,11 @@ function mig(){
   if(!S.cfg)S.cfg={cats:[],tipos:[],cuentas:[],ubic:[],gastos:[]};
   ["plan","sal","acum","deudas","pagos","pl","tcp","vc","sob","grupos"].forEach(function(k){S[k]=S[k]||[]});
   S.transfers=S.transfers||[];S.ing=S.ing||{};S.ps=S.ps||{F:0,V:0};S.pin=S.pin||{};S.tc=S.tc||{lim:0};S.ui=S.ui||{st:"esfera",c:{}};S.ui.c=S.ui.c||{};
-  if(S.tc.cta){var c=by(S.cfg.cuentas,S.tc.cta);if(c)c.r=true;delete S.tc.cta}}
-function ac(c){var b=bal(c.id);if(!c.r)return {d:b.d,ret:0,cons:0,lib:0,b:b};var lib=sum(S.tcp.filter(function(x){return x.c===c.id})),cons=R(sum(S.sal.filter(function(x){return x.p===c.id})));return {d:0,ret:R(b.a+b.b-lib),cons:cons,lib:lib,b:b}}
+  /* En versiones antiguas la cuenta de tarjeta se guardaba como retenida. Recuperarla una sola vez. */
+  if(!S.tc.cta){var legacy=S.cfg.cuentas.filter(function(c){return c.r});if(legacy.length===1)S.tc.cta=legacy[0].id;}
+  S.cfg.cuentas.forEach(function(c){c.r=false;});
+}
+function ac(c){var b=bal(c.id);if(isCardAcct(c.id))return {d:b.d,ret:0,cons:cardDebt(),lib:0,b:b};return {d:b.d,ret:0,cons:0,lib:0,b:b}}
 function sobr(k){return R((S.ing[k]||0)-sum(S.plan.filter(function(x){return x.k===k}))-sum(S.sob.filter(function(x){return x.k===k&&!x.g})))}
 function mix(a,b,t){var x=parseInt(a.slice(1),16),y=parseInt(b.slice(1),16),r=function(s){return Math.round(((x>>s)&255)*(1-t)+((y>>s)&255)*t)};return "#"+[16,8,0].map(function(s){return ("0"+r(s).toString(16)).slice(-2)}).join("")}
 function cv(c){return "--c:"+c+";--c1:"+mix(c,"#ffffff",0.5)+";--c2:"+mix(c,"#000000",0.35)}
@@ -248,19 +260,19 @@ function refreshPreview(){var e=document.getElementById("bgPreview");if(e){var d
 
 /* inicio */
 function rowC(c){
-  var a=ac(c),t=c.r,card=isCardAcct(c.id);
-  if(card)return '<div class="item account-item"><div class="row"><b>💳 '+esc(c.n)+'</b><span class="amt '+(a.d<0?"or":"ok")+'>'+f(a.d)+'</span></div><div class="tag card-summary">Límite '+f(S.tc.lim||0)+' · salidas '+f(cardSpent())+' · pagos '+f(cardPaid())+'</div></div>';
-  return '<div class="item account-item"><div class="row"><b>'+(t?"🔒 ":"")+esc(c.n)+'</b><span class="amt '+(t?"":a.d<0?"or":"ok")+'">'+f(t?a.ret:a.d)+'</span></div><div class="tag">'+(t?'Retenido (no se toca) · consumo en tarjeta '+f(a.cons):'Ingresos '+f(a.b.a+a.b.b)+' · gastados '+f(a.b.g))+'</div></div>'}
+  var a=ac(c),card=isCardAcct(c.id);
+  if(card)return '<div class="item account-item"><div class="row"><b>💳 '+esc(c.n)+'</b><span class="amt '+(a.d<0?"or":"ok")+'">'+f(a.d)+'</span></div><div class="tag card-summary">Disponible '+f(a.d)+' · salidas '+f(cardSpent())+' · pagos '+f(cardPaid())+'</div></div>';
+  return '<div class="item account-item"><div class="row"><b>'+esc(c.n)+'</b><span class="amt '+(a.d<0?"or":"ok")+'">'+f(a.d)+'</span></div><div class="tag">Ingresos '+f(a.b.a+a.b.b)+' · gastados '+f(a.b.g)+'</div></div>'}
 function grpRow(g){
   var m=g.ids.map(function(i){return by(S.cfg.cuentas,i)}).filter(Boolean),d=R(m.reduce(function(t,c){var a=ac(c);return t+a.d+a.ret},0)),k="sg"+g.id;
   return '<div class="item">'+hd(k,"👥 "+esc(g.n),'Total de las cuentas <b class="'+(d<0?"or":"ok")+'">'+f(d)+'</b> · '+m.length+' cuentas',true)+(V.o[k]?m.map(rowC).join(""):'')+'</div>'}
 function saldoCard(){
-  var L=S.cfg.cuentas,tot=R(L.reduce(function(t,c){return t+ac(c).d},0)),st=tcs(),h='<div class="card">'+hd("sd","Saldo por cuenta",'Disponible <b class="'+(tot<0?"or":"ok")+'">'+f(tot)+'</b>'+(st?' · retenido '+f(st.ret):''));
+  var L=S.cfg.cuentas,tot=R(L.reduce(function(t,c){return t+ac(c).d},0)),h='<div class="card">'+hd("sd","Saldo por cuenta",'Disponible <b class="'+(tot<0?"or":"ok")+'">'+f(tot)+'</b>');
   if(isO("sd")){
     if(!L.length)h+='<div class="empty">Agrega tus cuentas en Ajustes.</div>';
     var gi={};S.grupos.forEach(function(g){g.ids.forEach(function(i){gi[i]=1});h+=grpRow(g)});
     L.forEach(function(c){if(!gi[c.id])h+=rowC(c)});
-    h+=kv("Disponible total",f(tot))+(st?kv("Retenido para la tarjeta",f(st.ret))+kv("Consumo en tarjeta",f(st.cons)):'')}
+    h+=kv("Disponible total",f(tot))}
   return h+'</div>'}
 function ini(){
   var tiles=[['res','📊','Resumen','Consulta general'],['pre','📋','Presupuesto','Montos asignados'],['sal','💸','Salidas','Gastos registrados'],['cue','🏦','Cuentas','Saldos y movimientos'],['deu','🧾','Deudas','Pagos pendientes'],['fij','📌','Gastos fijos','Control de gastos'],['aju','⚙️','Ajustes','Personaliza la app']];S.ui=S.ui||{};var brand=S.ui.brand||{},h='<div class="homehero"><h1>'+esc(brand.title||'Presupuesto 2')+'</h1><div class="tag">'+esc(brand.sub===undefined?'Control de tu dinero':brand.sub)+'</div></div><div class="homegrid">';
@@ -361,7 +373,7 @@ function cue(){
   if(isO("cu")){h+='<div class="tag" style="margin-bottom:6px">Se calcula solo: ingresos = gastos del presupuesto + sobrante asignado + acumulados; gastados = salidas.</div>';
     if(!L.length)h+='<div class="empty">Agrega tus cuentas en Ajustes.</div>';
     L.forEach(function(c){var a=ac(c),b=a.b,card=isCardAcct(c.id);
-      h+='<div class="sub">'+hd("cu"+c.id,(c.r?"🔒 ":"")+esc(c.n),card?'<span class="card-summary">Límite '+f(S.tc.lim)+' · salidas '+f(cardSpent())+' · pagos '+f(cardPaid())+'</span>':c.r?'Retenido '+f(a.ret):'Disponible <span class="'+(b.d<0?"or":"ok")+'">'+f(b.d)+'</span>',true)+(V.o["cu"+c.id]?(card?kv("Crédito disponible",f(Math.max(0,(S.tc.lim||0)-cardDebt())))+kv("Salidas con tarjeta",'<span class="rd">'+f(cardSpent())+'</span>')+kv("Pagos registrados",f(cardPaid())):c.r?kv("Ingresos (presupuesto y sobrante)",f(b.a))+kv("Acumulados",f(b.b))+kv("Liberado a la tarjeta",f(a.lib))+kv("Retenido",f(a.ret))+kv("Consumo en tarjeta",f(a.cons)):kv("Ingresos (presupuesto y sobrante)",f(b.a))+kv("Acumulados",f(b.b))+kv("Gastados (salidas)",f(b.g))+kv("Disponible",f(b.d))):'')+'</div>'})}
+      h+="<div class=\"sub\">"+hd("cu"+c.id,card?"💳 "+esc(c.n):esc(c.n),card?'<span class="card-summary">Disponible '+f(Math.max(0,(S.tc.lim||0)-cardDebt()))+' · salidas '+f(cardSpent())+' · pagos '+f(cardPaid())+'</span>':'Disponible <span class="'+(b.d<0?"or":"ok")+'">'+f(b.d)+'</span>',true)+(V.o["cu"+c.id]?(card?kv("Crédito disponible",f(Math.max(0,(S.tc.lim||0)-cardDebt())))+kv("Salidas con tarjeta",'<span class="rd">'+f(cardSpent())+'</span>')+kv("Pagos registrados",f(cardPaid())):kv("Ingresos (presupuesto y sobrante)",f(b.a))+kv("Acumulados",f(b.b))+kv("Gastados (salidas)",f(b.g))+kv("Disponible",f(b.d))):'')+'</div>'})}
   h+='</div><div class="card">'+hd("ac","Acumulados",S.acum.length+" · "+f(sum(S.acum)));
   if(isO("ac")){
     if(L.length)h+='<div class="grid"><input id="an" placeholder="Descripción"><input id="am" type="number" inputmode="decimal" step="0.01" placeholder="Monto"></div><div class="grid"><select id="ap">'+op(L,"","Cuenta…")+'</select><input id="af" type="date" value="'+today()+'"></div><button style="width:100%;margin-bottom:6px" onclick="addA()">Agregar acumulado</button>';
@@ -369,7 +381,7 @@ function cue(){
   return h+'</div>'+tarjeta()}
 function addA(){var m=parseFloat(val("am")),p=val("ap");if(!val("an")||!p||isNaN(m)){msg("Escribe descripción, monto y cuenta.");return}S.acum.push({id:id(),n:val("an"),m:m,p:p,f:val("af")||today()});save();clr(["an","am","ap"]);draw();msg("Acumulado guardado")}
 /* tarjeta de crédito */
-function setCardAccount(i){if(i&&S.cfg.cuentas.some(function(c){return c.r&&c.id===i})){msg("Quita primero la retención de esa cuenta.");draw();return}S.tc.cta=i||"";save();draw();msg(i?"Cuenta asignada a la tarjeta":"Cuenta de tarjeta desasignada")}
+function setCardAccount(i){S.cfg.cuentas.forEach(function(c){c.r=false});S.tc.cta=i||"";save();draw();msg(i?"Cuenta asignada a la tarjeta":"Cuenta de tarjeta desasignada")}
 function tarjeta(){
   var t=S.tc,st=tcs(),vc=vcs(),h='<div class="card">'+hd("tj","💳 Tarjeta de crédito",t.cta?'Pendiente <b>'+f(cardDebt())+'</b> · disponible '+f(Math.max(0,(t.lim||0)-cardDebt())):"Selecciona la cuenta donde se asignará el límite");
   if(!isO("tj"))return h+'</div>';
