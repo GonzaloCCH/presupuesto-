@@ -100,10 +100,10 @@ h2{font-size:14px;letter-spacing:.01em;margin-bottom:12px}
 select,input,textarea{border-radius:13px;padding:11px 12px}
 button{border-radius:13px;transition:transform .12s ease,opacity .12s ease}
 button:active{transform:scale(.985)}
-header#top{box-shadow:0 2px 10px rgba(15,40,70,.05);border-bottom-color:var(--line)}
+header#top{box-shadow:none;border-bottom-color:var(--line)}
 header#top button{padding:9px 2px 8px;font-size:10px}
 header#top .ic{width:30px;height:30px}
-#act{gap:10px;padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 18px rgba(20,45,75,.06)}
+#act{gap:10px;padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px));box-shadow:none;background:var(--card)}
 #act button{border-radius:15px}
 .ef{border-radius:14px;padding:12px}
 .kv{padding:9px 0}
@@ -112,7 +112,7 @@ header#top .ic{width:30px;height:30px}
 
 
 /* Inicio por tarjetas y acciones de edición */
-.homehero{padding:22px 8px 18px;text-align:center}.homehero h1{margin:0 0 5px;color:var(--acc);font-size:27px}.homegrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:12px 0 18px}.hometile{min-height:118px;border-radius:24px;border:1px solid var(--line);background:var(--acc);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;box-shadow:0 8px 22px #14202e12}.hometile span{font-size:30px}.hometile b{font-size:16px}.homeactions{margin-bottom:14px}.item-editable{position:relative;padding-right:34px}.delete-x{position:absolute;right:7px;top:7px;width:25px;height:25px;padding:0;border-radius:50%;background:var(--rd);color:#fff;border:0;font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center}.ef{padding-right:0}.section-back{width:100%;text-align:left;margin:0 0 12px;background:var(--card);color:var(--acc);border:1px solid var(--line)}#top{display:none!important}
+.homehero{padding:22px 8px 18px;text-align:center}.homehero h1{margin:0 0 5px;color:var(--acc);font-size:27px}.homegrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:12px 0 18px}.hometile{min-height:118px;border-radius:24px;border:1px solid var(--line);background:var(--tile-color,var(--acc));color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;box-shadow:none;position:relative;overflow:hidden}.hometile span{font-size:30px}.hometile b{font-size:16px}.homeactions{display:none!important;margin-bottom:14px}.homehero{background:transparent!important;box-shadow:none!important}.hometile:before{display:none!important}.hometile img{width:34px;height:34px;object-fit:contain;border-radius:6px}.hometile b{font-size:16px}.hometile .tile-sub{font-size:11px;font-weight:500;opacity:.85}.item-editable{position:relative;padding-right:34px}.delete-x{position:absolute;right:7px;top:7px;width:25px;height:25px;padding:0;border-radius:50%;background:var(--rd);color:#fff;border:0;font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center}.ef{padding-right:0}.section-back{width:100%;text-align:left;margin:0 0 12px;background:var(--card);color:var(--acc);border:1px solid var(--line)}#top{display:none!important}
 </style>
 </head>
 <body>
@@ -236,9 +236,10 @@ function saldoCard(){
     h+=kv("Disponible total",f(tot))+(st?kv("Retenido para la tarjeta",f(st.ret))+kv("Consumo en tarjeta",f(st.cons)):'')}
   return h+'</div>'}
 function ini(){
-  var c=S.cfg,tiles=[['res','📊','Resumen'],['pre','📋','Presupuesto'],['sal','💸','Salidas'],['cue','🏦','Cuentas'],['deu','🧾','Deudas'],['fij','📌','Gastos fijos'],['aju','⚙️','Ajustes']],h='<div class="homehero"><h1>Presupuesto 2</h1><div class="tag">Control de tu dinero</div></div><div class="homegrid">';
-  tiles.forEach(function(t){h+='<button class="hometile" onclick="go(\''+t[0]+'\')"><span>'+t[1]+'</span><b>'+t[2]+'</b></button>'});
-  h+='</div><div class="grid homeactions"><button onclick="openSh(\'p\')">＋ Nuevo presupuesto</button><button class="alt" onclick="openSh(\'s\')">＋ Nueva salida</button></div>';
+  var tiles=[['res','📊','Resumen','Consulta general'],['pre','📋','Presupuesto','Montos asignados'],['sal','💸','Salidas','Gastos registrados'],['cue','🏦','Cuentas','Saldos y movimientos'],['deu','🧾','Deudas','Pagos pendientes'],['fij','📌','Gastos fijos','Control de gastos'],['aju','⚙️','Ajustes','Personaliza la app']],h='<div class="homehero"><h1>Presupuesto 2</h1><div class="tag">Control de tu dinero</div></div><div class="homegrid">';
+  S.ui=S.ui||{};S.ui.tiles=S.ui.tiles||{};
+  tiles.forEach(function(t){var z=S.ui.tiles[t[0]]||{},label=z.name||t[2],sub=z.sub===undefined?t[3]:z.sub,icon=z.image?'<img src="'+z.image+'" alt="">':'<span>'+esc(z.icon||t[1])+'</span>',color=z.color||'#145DA0';h+='<button class="hometile" style="--tile-color:'+esc(color)+'" onclick="go(\''+t[0]+'\')">'+icon+'<b>'+esc(label)+'</b>'+(sub?'<small class="tile-sub">'+esc(sub)+'</small>':'')+'</button>'});
+  h+='</div>';
   return h+saldoCard()+head();
 }
 /* formularios (hoja inferior) */
@@ -441,9 +442,17 @@ function copyTsv(){
   copyText(rows.map(function(r){return r.join("\t")}).join("\n"),"Gastos copiados. Pégalos en Excel")}
 function restaurar(){var t=val("rs");if(!t){msg("Pega primero el respaldo.");return}
   try{var o=JSON.parse(t);if(!o.cfg||!o.plan||!o.sal)throw 0;S=o;mig();save();clr(["rs"]);draw();msg("Respaldo restaurado")}catch(e){msg("Ese texto no es un respaldo válido.")}}
+function tileSettings(){
+  var tiles=[['res','Resumen','Consulta general'],['pre','Presupuesto','Montos asignados'],['sal','Salidas','Gastos registrados'],['cue','Cuentas','Saldos y movimientos'],['deu','Deudas','Pagos pendientes'],['fij','Gastos fijos','Control de gastos'],['aju','Ajustes','Personaliza la app']],h='<div class="card"><h2>Personalizar botones de Inicio</h2><div class="tag" style="margin-bottom:10px">Cambia el nombre, texto pequeño, icono y color de cada tarjeta. Puedes elegir una imagen de Fotos/Archivos.</div>';
+  S.ui=S.ui||{};S.ui.tiles=S.ui.tiles||{};
+  tiles.forEach(function(t){var z=S.ui.tiles[t[0]]||{};h+='<div style="border-top:1px solid var(--line);padding:10px 0"><b>'+t[1]+'</b><div class="grid" style="margin-top:7px"><input placeholder="Nombre del botón" value="'+esc(z.name||t[1])+'" onchange="tileSet(\''+t[0]+'\',\'name\',this.value)"><input placeholder="Texto pequeño" value="'+esc(z.sub===undefined?t[2]:z.sub)+'" onchange="tileSet(\''+t[0]+'\',\'sub\',this.value)"></div><div class="grid" style="margin-top:7px"><input placeholder="Emoji o símbolo" value="'+esc(z.icon||'')+'" onchange="tileSet(\''+t[0]+'\',\'icon\',this.value)" maxlength="8"><label class="cp">Color del botón <input type="color" value="'+esc(z.color||'#145DA0')+'" onchange="tileSet(\''+t[0]+'\',\'color\',this.value)"></label></div><label class="cp" style="display:flex;align-items:center;gap:8px;margin-top:7px">Subir icono personalizado <input type="file" accept="image/*" onchange="tileImage(\''+t[0]+'\',this)"></label>'+(z.image?'<button class="ghost" style="margin-top:6px" onclick="tileSet(\''+t[0]+'\',\'image\',\'\')">Quitar imagen</button>':'')+'</div>'});
+  return h+'</div>';
+}
+function tileSet(k,field,value){S.ui=S.ui||{};S.ui.tiles=S.ui.tiles||{};S.ui.tiles[k]=S.ui.tiles[k]||{};S.ui.tiles[k][field]=value;save();draw();}
+function tileImage(k,input){var file=input.files&&input.files[0];if(!file)return;if(file.size>1500000){msg('Elige una imagen de menos de 1.5 MB.');input.value='';return}var rd=new FileReader();rd.onload=function(){tileSet(k,'image',rd.result)};rd.readAsDataURL(file)}
 function aju(){
   return '<div class="card"><h2>🎨 Apariencia</h2><div class="tag" style="margin-bottom:8px">Elige el fondo y los colores de la aplicación.</div><label class="lb" for="themePick">Tema de color</label><select id="themePick" onchange="setTheme(this.value)"><option value="light">Claro · blanco</option><option value="dark">Oscuro</option><option value="blue">Azul</option><option value="system">Automático del dispositivo</option></select></div><div class="tag" style="margin-bottom:10px">Lo que agregues, cambies o elimines aquí aparece solo en todas las pantallas.</div>'
-   +cl("cats","Categorías")+cl("tipos","Tipos de gasto")+cl("cuentas","Cuentas, métodos de pago y entidades")+ret()+gr()+cl("gastos","Gastos (nombre, categoría y tipo)")+cl("ubic","Ubicaciones de deudas")+icCard()
+   +cl("cats","Categorías")+cl("tipos","Tipos de gasto")+cl("cuentas","Cuentas, métodos de pago y entidades")+ret()+gr()+cl("gastos","Gastos (nombre, categoría y tipo)")+cl("ubic","Ubicaciones de deudas")+tileSettings()+icCard()
    +'<div class="card"><h2>Respaldo y exportar</h2><div class="tag" style="margin-bottom:8px">Copia tus datos para guardarlos en Notas. Para Excel, pega los gastos en una hoja.</div><button style="width:100%;margin-bottom:8px" onclick="copyText(JSON.stringify(S),\'Respaldo copiado\')">Copiar respaldo completo</button><button style="width:100%;margin-bottom:12px" onclick="copyTsv()">Copiar gastos para Excel</button><textarea id="rs" placeholder="Pega aquí un respaldo para restaurarlo"></textarea><button class="ghost" style="width:100%;border:1px solid var(--line)" onclick="restaurar()">Restaurar respaldo (reemplaza todo)</button></div><div class="tag" style="text-align:center;margin-top:6px">Versión 5</div>'}
 function setTheme(v){
   try{localStorage.setItem("presupuesto2-theme",v)}catch(e){}
