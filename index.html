@@ -92,9 +92,9 @@ header#top button.on .ic{transform:translateY(-1px) scale(1.07)}
 :root[data-theme="light"]{color-scheme:light}
 body{font-size:15px;line-height:1.45;letter-spacing:.005em;-webkit-tap-highlight-color:transparent}
 main{padding:16px 14px 20px}
-.card{border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 3px 14px rgba(20,45,75,.045)}
-.sub{margin-top:12px;padding-top:10px}
-.item{padding:12px 0}
+.card{border-radius:18px;padding:12px;margin-bottom:8px;box-shadow:none}
+.sub{margin-top:6px;padding-top:5px}
+.item{padding:6px 0}
 .row{gap:10px}
 h2{font-size:14px;letter-spacing:.01em;margin-bottom:12px}
 select,input,textarea{border-radius:13px;padding:11px 12px}
@@ -106,13 +106,29 @@ header#top .ic{width:30px;height:30px}
 #act{gap:10px;padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px));box-shadow:none;background:var(--card)}
 #act button{border-radius:15px}
 .ef{border-radius:14px;padding:12px}
-.kv{padding:9px 0}
+.kv{padding:5px 0}
 .stp{border-radius:13px}
 @media(min-width:520px){main{padding-left:18px;padding-right:18px}.card{padding:18px}}
 
 
 /* Inicio por tarjetas y acciones de edición */
-.homehero{padding:22px 8px 18px;text-align:center}.homehero h1{margin:0 0 5px;color:var(--acc);font-size:27px}.homegrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:12px 0 18px}.hometile{min-height:118px;border-radius:24px;border:1px solid var(--line);background:var(--tile-color,var(--acc));color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;box-shadow:none;position:relative;overflow:hidden}.hometile span{font-size:30px}.hometile b{font-size:16px}.homeactions{display:none!important;margin-bottom:14px}.homehero{background:transparent!important;box-shadow:none!important}.hometile:before{display:none!important}.hometile img{width:34px;height:34px;object-fit:contain;border-radius:6px}.hometile b{font-size:16px}.hometile .tile-sub{font-size:11px;font-weight:500;opacity:.85}.item-editable{position:relative;padding-right:34px}.delete-x{position:absolute;right:7px;top:7px;width:25px;height:25px;padding:0;border-radius:50%;background:var(--rd);color:#fff;border:0;font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center}.ef{padding-right:0}.section-back{width:100%;text-align:left;margin:0 0 12px;background:var(--card);color:var(--acc);border:1px solid var(--line)}#top{display:none!important}
+.homehero{padding:22px 8px 18px;text-align:center}.homehero h1{margin:0 0 5px;color:var(--acc);font-size:27px}.homegrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:8px 0 12px}.hometile{min-height:108px;border-radius:24px;border:1px solid var(--line);background:var(--tile-color,var(--acc));color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;box-shadow:none;position:relative;overflow:hidden}.hometile span{font-size:30px}.hometile b{font-size:16px}.homeactions{display:none!important;margin-bottom:14px}.homehero{background:transparent!important;box-shadow:none!important}.hometile:before{display:none!important}.hometile img{width:34px;height:34px;object-fit:contain;border-radius:6px}.hometile b{font-size:16px}.hometile .tile-sub{font-size:11px;font-weight:500;opacity:.85}.item-editable{position:relative;padding-right:23px}.delete-x{position:absolute;right:5px;top:5px;width:15px;height:15px;padding:0;border-radius:0;background:transparent;color:#DC2626;border:0;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center}.ef{padding-right:0}.section-back{width:100%;text-align:left;margin:0 0 12px;background:var(--card);color:var(--acc);border:1px solid var(--line)}#top{display:none!important}
+
+/* Ajuste final: menos espacios y botón de borrar discreto */
+.card{padding:11px;margin-bottom:7px}
+.item{padding:5px 0}
+.kv{padding:4px 0}
+.sub{margin-top:5px;padding-top:4px}
+.grid{gap:8px;margin:7px 0 8px}
+.homegrid{gap:9px;margin:8px 0 10px}
+.homehero{padding:16px 8px 12px}
+.delete-x{width:14px;height:14px;right:4px;top:4px;background:transparent!important;color:#D71920!important;font-size:15px;font-weight:700;border-radius:0;box-shadow:none;padding:0}
+.customize-drop>summary{cursor:pointer;color:var(--acc);font-weight:700;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.customize-drop>summary::-webkit-details-marker{display:none}
+.customize-drop>summary:after{content:'⌄';font-size:18px}
+.customize-drop[open]>summary:after{content:'⌃'}
+.brand-edit{padding:8px 0 12px;border-bottom:1px solid var(--line);margin-bottom:8px}
+@media(min-width:520px){.card{padding:13px}}
 </style>
 </head>
 <body>
@@ -236,7 +252,7 @@ function saldoCard(){
     h+=kv("Disponible total",f(tot))+(st?kv("Retenido para la tarjeta",f(st.ret))+kv("Consumo en tarjeta",f(st.cons)):'')}
   return h+'</div>'}
 function ini(){
-  var tiles=[['res','📊','Resumen','Consulta general'],['pre','📋','Presupuesto','Montos asignados'],['sal','💸','Salidas','Gastos registrados'],['cue','🏦','Cuentas','Saldos y movimientos'],['deu','🧾','Deudas','Pagos pendientes'],['fij','📌','Gastos fijos','Control de gastos'],['aju','⚙️','Ajustes','Personaliza la app']],h='<div class="homehero"><h1>Presupuesto 2</h1><div class="tag">Control de tu dinero</div></div><div class="homegrid">';
+  var tiles=[['res','📊','Resumen','Consulta general'],['pre','📋','Presupuesto','Montos asignados'],['sal','💸','Salidas','Gastos registrados'],['cue','🏦','Cuentas','Saldos y movimientos'],['deu','🧾','Deudas','Pagos pendientes'],['fij','📌','Gastos fijos','Control de gastos'],['aju','⚙️','Ajustes','Personaliza la app']];S.ui=S.ui||{};var brand=S.ui.brand||{},h='<div class="homehero"><h1>'+esc(brand.title||'Presupuesto 2')+'</h1><div class="tag">'+esc(brand.sub===undefined?'Control de tu dinero':brand.sub)+'</div></div><div class="homegrid">';
   S.ui=S.ui||{};S.ui.tiles=S.ui.tiles||{};
   tiles.forEach(function(t){var z=S.ui.tiles[t[0]]||{},label=z.name||t[2],sub=z.sub===undefined?t[3]:z.sub,icon=z.image?'<img src="'+z.image+'" alt="">':'<span>'+esc(z.icon||t[1])+'</span>',color=z.color||'#145DA0';h+='<button class="hometile" style="--tile-color:'+esc(color)+'" onclick="go(\''+t[0]+'\')">'+icon+'<b>'+esc(label)+'</b>'+(sub?'<small class="tile-sub">'+esc(sub)+'</small>':'')+'</button>'});
   h+='</div>';
@@ -443,11 +459,12 @@ function copyTsv(){
 function restaurar(){var t=val("rs");if(!t){msg("Pega primero el respaldo.");return}
   try{var o=JSON.parse(t);if(!o.cfg||!o.plan||!o.sal)throw 0;S=o;mig();save();clr(["rs"]);draw();msg("Respaldo restaurado")}catch(e){msg("Ese texto no es un respaldo válido.")}}
 function tileSettings(){
-  var tiles=[['res','Resumen','Consulta general'],['pre','Presupuesto','Montos asignados'],['sal','Salidas','Gastos registrados'],['cue','Cuentas','Saldos y movimientos'],['deu','Deudas','Pagos pendientes'],['fij','Gastos fijos','Control de gastos'],['aju','Ajustes','Personaliza la app']],h='<div class="card"><h2>Personalizar botones de Inicio</h2><div class="tag" style="margin-bottom:10px">Cambia el nombre, texto pequeño, icono y color de cada tarjeta. Puedes elegir una imagen de Fotos/Archivos.</div>';
+  var tiles=[['res','Resumen','Consulta general'],['pre','Presupuesto','Montos asignados'],['sal','Salidas','Gastos registrados'],['cue','Cuentas','Saldos y movimientos'],['deu','Deudas','Pagos pendientes'],['fij','Gastos fijos','Control de gastos'],['aju','Ajustes','Personaliza la app']],h='<details class="card customize-drop"><summary><b>Personalizar botones de Inicio</b></summary><div class="tag" style="margin:8px 0 10px">Cambia título, texto, iconos, imágenes y colores.</div><div class="brand-edit"><b>Título de la pantalla principal</b><input value="'+esc((S.ui&&S.ui.brand&&S.ui.brand.title)||'Presupuesto 2')+'" placeholder="Título" onchange="brandSet(\'title\',this.value)"><label class="lb">Texto debajo del título</label><input value="'+esc((S.ui&&S.ui.brand&&S.ui.brand.sub===undefined)?'Control de tu dinero':((S.ui&&S.ui.brand&&S.ui.brand.sub)||''))+'" placeholder="Subtítulo" onchange="brandSet(\'sub\',this.value)"></div>';
   S.ui=S.ui||{};S.ui.tiles=S.ui.tiles||{};
   tiles.forEach(function(t){var z=S.ui.tiles[t[0]]||{};h+='<div style="border-top:1px solid var(--line);padding:10px 0"><b>'+t[1]+'</b><div class="grid" style="margin-top:7px"><input placeholder="Nombre del botón" value="'+esc(z.name||t[1])+'" onchange="tileSet(\''+t[0]+'\',\'name\',this.value)"><input placeholder="Texto pequeño" value="'+esc(z.sub===undefined?t[2]:z.sub)+'" onchange="tileSet(\''+t[0]+'\',\'sub\',this.value)"></div><div class="grid" style="margin-top:7px"><input placeholder="Emoji o símbolo" value="'+esc(z.icon||'')+'" onchange="tileSet(\''+t[0]+'\',\'icon\',this.value)" maxlength="8"><label class="cp">Color del botón <input type="color" value="'+esc(z.color||'#145DA0')+'" onchange="tileSet(\''+t[0]+'\',\'color\',this.value)"></label></div><label class="cp" style="display:flex;align-items:center;gap:8px;margin-top:7px">Subir icono personalizado <input type="file" accept="image/*" onchange="tileImage(\''+t[0]+'\',this)"></label>'+(z.image?'<button class="ghost" style="margin-top:6px" onclick="tileSet(\''+t[0]+'\',\'image\',\'\')">Quitar imagen</button>':'')+'</div>'});
-  return h+'</div>';
+  return h+'</div></details>';
 }
+function brandSet(field,value){S.ui=S.ui||{};S.ui.brand=S.ui.brand||{};S.ui.brand[field]=value;save();draw()}
 function tileSet(k,field,value){S.ui=S.ui||{};S.ui.tiles=S.ui.tiles||{};S.ui.tiles[k]=S.ui.tiles[k]||{};S.ui.tiles[k][field]=value;save();draw();}
 function tileImage(k,input){var file=input.files&&input.files[0];if(!file)return;if(file.size>1500000){msg('Elige una imagen de menos de 1.5 MB.');input.value='';return}var rd=new FileReader();rd.onload=function(){tileSet(k,'image',rd.result)};rd.readAsDataURL(file)}
 function aju(){
