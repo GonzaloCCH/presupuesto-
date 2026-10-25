@@ -143,6 +143,19 @@ select,input,textarea{min-width:0;max-width:100%}
 .sh{overflow-x:hidden}
 .kv>span:first-child{min-width:0;overflow-wrap:anywhere}.kv>*{min-width:0}
 @media(max-width:390px){.card{padding:9px}.sh{padding-left:12px;padding-right:12px}.grid{gap:6px}}
+
+/* Correcciones v8 */
+#sheet{background:rgba(0,0,0,.28)}
+.no-fade #sheet,.no-fade #sheet.on{background:transparent!important}
+.no-fade .sh{box-shadow:0 -6px 24px rgba(0,0,0,.28)}
+input[type=date],input[type=month],input[type=time]{-webkit-appearance:none;appearance:none;display:block;width:100%;min-width:0;max-width:100%;min-height:44px;line-height:1.2;text-align:left;margin:0}
+input::-webkit-date-and-time-value{text-align:left;min-width:0}
+input[type=file]{width:100%;max-width:100%;font-size:13px}
+input[type=color]{width:100%;min-width:0;max-width:100%;height:40px;padding:3px}
+.hometile{min-width:0;padding:10px 6px}.hometile b{max-width:100%;overflow-wrap:anywhere;text-align:center}.hometile .ic{width:46px;height:46px;font-size:26px;margin:0}.hometile img{width:46px;height:46px}
+.no-zoom,.no-zoom *{touch-action:pan-x pan-y}
+.app-logo{width:58px;height:58px;border-radius:14px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:30px;overflow:hidden;color:#fff}
+.app-logo img{width:100%;height:100%;object-fit:cover}
 </style>
 </head>
 <body>
@@ -182,7 +195,7 @@ function pin(k){S.pin[k]=!S.pin[k];if(!S.pin[k])V.o[k]=true;save();draw()}
 function isO(k){return !!(V.o[k]||S.pin[k])}
 function ted(k){V.ed=V.ed===k?"":k;draw()}
 function go(t){V.tab=t;draw();window.scrollTo(0,0)}
-function openSh(t){V.sheet=t;V.previewG="";V.sob=false;draw()}
+function openSh(t){V.sheet=t;V.previewG="";V.sob=false;draw();window.scrollTo(0,0)}
 function closeSh(){V.sheet="";draw()}
 function lst(L){return L.indexOf("cfg.")===0?S.cfg[L.slice(4)]:S[L]}
 /* cálculos */
@@ -267,7 +280,7 @@ function grpRow(g){
   var m=g.ids.map(function(i){return by(S.cfg.cuentas,i)}).filter(Boolean),d=R(m.reduce(function(t,c){var a=ac(c);return t+a.d+a.ret},0)),k="sg"+g.id;
   return '<div class="item">'+hd(k,"👥 "+esc(g.n),'Total de las cuentas <b class="'+(d<0?"or":"ok")+'">'+f(d)+'</b> · '+m.length+' cuentas',true)+(V.o[k]?m.map(rowC).join(""):'')+'</div>'}
 function saldoCard(){
-  var L=S.cfg.cuentas,tot=R(L.reduce(function(t,c){return t+ac(c).d},0)),h='<div class="card">'+hd("sd","Saldo por cuenta",'Disponible <b class="'+(tot<0?"or":"ok")+'">'+f(tot)+'</b>');
+  var L=S.cfg.cuentas,tot=R(L.reduce(function(t,c){return t+(isCardAcct(c.id)?0:ac(c).d)},0)),h='<div class="card">'+hd("sd","Saldo por cuenta",'Disponible <b class="'+(tot<0?"or":"ok")+'">'+f(tot)+'</b>');
   if(isO("sd")){
     if(!L.length)h+='<div class="empty">Agrega tus cuentas en Ajustes.</div>';
     var gi={};S.grupos.forEach(function(g){g.ids.forEach(function(i){gi[i]=1});h+=grpRow(g)});
@@ -275,9 +288,9 @@ function saldoCard(){
     h+=kv("Disponible total",f(tot))}
   return h+'</div>'}
 function ini(){
-  var tiles=[['res','📊','Resumen','Consulta general'],['pre','📋','Presupuesto','Montos asignados'],['sal','💸','Salidas','Gastos registrados'],['cue','🏦','Cuentas','Saldos y movimientos'],['deu','🧾','Deudas','Pagos pendientes'],['fij','📌','Gastos fijos','Control de gastos'],['aju','⚙️','Ajustes','Personaliza la app']];S.ui=S.ui||{};var brand=S.ui.brand||{},h='<div class="homehero"><h1>'+esc(brand.title||'Presupuesto 2')+'</h1><div class="tag">'+esc(brand.sub===undefined?'Control de tu dinero':brand.sub)+'</div></div><div class="homegrid">';
+  var tiles=[['res','📊','Resumen','Consulta general'],['pre','📋','Presupuesto','Montos asignados'],['sal','💸','Salidas','Gastos registrados'],['cue','🏦','Cuentas','Saldos y movimientos'],['deu','🧾','Deudas','Pagos pendientes'],['fij','📌','Gastos fijos','Control de gastos'],['aju','⚙️','Ajustes','Personaliza la app']];S.ui=S.ui||{};var brand=S.ui.brand||{},h='<div class="homehero">'+appLogo()+'<h1>'+esc(brand.title||'Presupuesto 2')+'</h1><div class="tag">'+esc(brand.sub===undefined?'Control de tu dinero':brand.sub)+'</div></div><div class="homegrid">';
   S.ui=S.ui||{};S.ui.tiles=S.ui.tiles||{};
-  tiles.forEach(function(t){var z=S.ui.tiles[t[0]]||{},label=z.name||t[2],sub=z.sub===undefined?t[3]:z.sub,icon=z.image?'<img src="'+z.image+'" alt="">':'<span>'+esc(z.icon||t[1])+'</span>',color=z.color||'#145DA0';h+='<button class="hometile" style="--tile-color:'+esc(color)+'" onclick="go(\''+t[0]+'\')">'+icon+'<b>'+esc(label)+'</b>'+(sub?'<small class="tile-sub">'+esc(sub)+'</small>':'')+'</button>'});
+  tiles.forEach(function(t){var z=S.ui.tiles[t[0]]||{},label=z.name||t[2],sub=z.sub===undefined?t[3]:z.sub,icon=z.image?'<img src="'+z.image+'" alt="">':'<span class="ic" style="'+cv(ucol(t[0]))+'">'+esc(z.icon||t[1])+'</span>',color=z.color||'#145DA0';h+='<button class="hometile st-'+S.ui.st+'" style="--tile-color:'+esc(color)+'" onclick="go(\''+t[0]+'\')">'+icon+'<b>'+esc(label)+'</b>'+(sub?'<small class="tile-sub">'+esc(sub)+'</small>':'')+'</button>'});
   h+='</div>';
   return h+saldoCard()+head();
 }
@@ -369,7 +382,7 @@ function sal(){
   return h+'</div>'}
 /* cuentas */
 function cue(){
-  var L=S.cfg.cuentas,tot=R(L.reduce(function(t,c){return t+ac(c).d},0)),h='<div class="card">'+hd("cu","Ingresos y gastados por cuenta","Disponible total "+f(tot));
+  var L=S.cfg.cuentas,tot=R(L.reduce(function(t,c){return t+(isCardAcct(c.id)?0:ac(c).d)},0)),h='<div class="card">'+hd("cu","Ingresos y gastados por cuenta","Disponible total "+f(tot));
   if(isO("cu")){h+='<div class="tag" style="margin-bottom:6px">Se calcula solo: ingresos = gastos del presupuesto + sobrante asignado + acumulados; gastados = salidas.</div>';
     if(!L.length)h+='<div class="empty">Agrega tus cuentas en Ajustes.</div>';
     L.forEach(function(c){var a=ac(c),b=a.b,card=isCardAcct(c.id);
@@ -484,22 +497,35 @@ function copyTsv(){
   copyText(rows.map(function(r){return r.join("\t")}).join("\n"),"Gastos copiados. Pégalos en Excel")}
 function restaurar(){var t=val("rs");if(!t){msg("Pega primero el respaldo.");return}
   try{var o=JSON.parse(t);if(!o.cfg||!o.plan||!o.sal)throw 0;S=o;mig();save();clr(["rs"]);draw();msg("Respaldo restaurado")}catch(e){msg("Ese texto no es un respaldo válido.")}}
-function appIconSettings(){
+
+function appLogo(){var a=S.ui&&S.ui.appIcon;if(!a)return"";return '<div class="app-logo" style="background:'+esc(a.color||"#145DA0")+'">'+(a.image?'<img src="'+a.image+'" alt="">':esc(a.emoji||"💰"))+'</div>'}
+var _aiSig="";
+function applyAppIcon(){
+  var a=S.ui&&S.ui.appIcon;if(!a)return;
+  var sig=(a.preset||"")+"|"+(a.color||"")+"|"+(a.emoji||"")+"|"+(a.image||"").length;if(sig===_aiSig)return;_aiSig=sig;
+  function put(u){if(!u)return;var l=document.querySelector('link[rel="apple-touch-icon"]');if(l)l.href=u;var f=document.querySelector('link[rel="icon"]');if(!f){f=document.createElement("link");f.rel="icon";document.head.appendChild(f)}f.href=u}
+  try{
+    if(a.image){var im=new Image();im.onload=function(){var c=document.createElement("canvas");c.width=c.height=180;var x=c.getContext("2d"),m=Math.min(im.width,im.height);x.drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,180,180);put(c.toDataURL("image/png"))};im.src=a.image}
+    else{var c=document.createElement("canvas");c.width=c.height=180;var x=c.getContext("2d");if(!x)return;x.fillStyle=a.color||"#145DA0";x.fillRect(0,0,180,180);x.font="104px sans-serif";x.textAlign="center";x.textBaseline="middle";x.fillText(a.emoji||"💰",90,98);put(c.toDataURL("image/png"))}
+  }catch(e){}}
+function appIconSettings(){var h='<div class="card">'+hd("cfapp","Personalizar icono de la app","Elige diseño, color o sube una imagen");return isO("cfapp")?h+appIconBody()+'</div>':h+'</div>'}
+function appIconBody(){
   S.ui=S.ui||{};var chosen=S.ui.appIcon||{preset:"wallet",color:"#145DA0"};
   var presets=[["wallet","💰","Presupuesto"],["calculator","🧮","Calculadora"],["chart","📊","Gráficas"],["coins","🪙","Ahorro"],["bank","🏦","Finanzas"],["piggy","🐷","Alcancía"]];
-  var h='<details class="card customize-drop"><summary><b>Personalizar icono de la app</b></summary><div class="tag" style="margin:8px 0">Elige un diseño o sube una imagen. La vista previa se guarda dentro de la app.</div><div style="display:flex;align-items:center;gap:14px;padding:10px 0"><div style="width:76px;height:76px;flex:0 0 76px;border-radius:18px;background:'+esc(chosen.color||"#145DA0")+';display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:38px;color:white">'+(chosen.image?'<img src="'+chosen.image+'" style="width:100%;height:100%;object-fit:cover">':esc(chosen.emoji||"💰"))+'</div><div><b>Vista previa</b><div class="tag">Icono cuadrado</div></div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
+  var h='<div><div class="tag" style="margin:8px 0">Elige un diseño o sube una imagen. La vista previa se guarda dentro de la app.</div><div style="display:flex;align-items:center;gap:14px;padding:10px 0"><div style="width:76px;height:76px;flex:0 0 76px;border-radius:18px;background:'+esc(chosen.color||"#145DA0")+';display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:38px;color:white">'+(chosen.image?'<img src="'+chosen.image+'" style="width:100%;height:100%;object-fit:cover">':esc(chosen.emoji||"💰"))+'</div><div><b>Vista previa</b><div class="tag">Icono cuadrado</div></div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
   presets.forEach(function(x){h+='<button type="button" class="alt" style="padding:12px 4px;background:'+(chosen.preset===x[0]?(chosen.color||"#145DA0"):"var(--accbg)")+';color:'+(chosen.preset===x[0]?'white':'var(--acc)')+'" onclick="setAppIconPreset(\''+x[0]+'\',\''+x[1]+'\')"><span style="display:block;font-size:25px">'+x[1]+'</span><span style="font-size:11px">'+x[2]+'</span></button>'});
-  h+='</div><label class="lb">Color del icono</label><input type="color" value="'+esc(chosen.color||"#145DA0")+'" onchange="setAppIconColor(this.value)"><label class="lb">Subir imagen desde Fotos o Archivos</label><input type="file" accept="image/*" onchange="setAppIconImage(this)">'+(chosen.image?'<button class="ghost" onclick="clearAppIconImage()">Quitar imagen</button>':'')+'<div class="tag" style="margin-top:8px">Esto cambia el icono mostrado dentro de la app. Para cambiar el icono instalado en la pantalla de inicio del iPhone, hay que reemplazar icon-180.png e icon-512.png y volver a publicar la app.</div></details>';return h;
+  h+='</div><label class="lb">Color del icono</label><input type="color" value="'+esc(chosen.color||"#145DA0")+'" onchange="setAppIconColor(this.value)"><label class="lb">Subir imagen desde Fotos o Archivos</label><input type="file" accept="image/*" onchange="setAppIconImage(this)">'+(chosen.image?'<button class="ghost" onclick="clearAppIconImage()">Quitar imagen</button>':'')+'<div class="tag" style="margin-top:8px">El icono se muestra arriba en Inicio y se usa al añadir la app a la pantalla de inicio. Si ya la tienes instalada, quítala y vuelve a añadirla (Compartir → Añadir a pantalla de inicio) para que tome el icono nuevo.</div></div>';return h;
 }
 function setAppIconPreset(preset,emoji){S.ui=S.ui||{};S.ui.appIcon=S.ui.appIcon||{};S.ui.appIcon.preset=preset;S.ui.appIcon.emoji=emoji;S.ui.appIcon.image="";save();draw()}
 function setAppIconColor(color){S.ui=S.ui||{};S.ui.appIcon=S.ui.appIcon||{};S.ui.appIcon.color=color;save();draw()}
 function setAppIconImage(input){var file=input.files&&input.files[0];if(!file)return;if(file.size>1500000){msg("Elige una imagen de menos de 1.5 MB.");input.value="";return}var rd=new FileReader();rd.onload=function(){S.ui=S.ui||{};S.ui.appIcon=S.ui.appIcon||{};S.ui.appIcon.image=rd.result;save();draw()};rd.readAsDataURL(file)}
 function clearAppIconImage(){S.ui.appIcon.image="";save();draw()}
-function tileSettings(){
-  var tiles=[['res','Resumen','Consulta general'],['pre','Presupuesto','Montos asignados'],['sal','Salidas','Gastos registrados'],['cue','Cuentas','Saldos y movimientos'],['deu','Deudas','Pagos pendientes'],['fij','Gastos fijos','Control de gastos'],['aju','Ajustes','Personaliza la app']],h='<details class="card customize-drop"><summary><b>Personalizar botones de Inicio</b></summary><div class="tag" style="margin:8px 0 10px">Cambia título, texto, iconos, imágenes y colores.</div><div class="brand-edit"><b>Título de la pantalla principal</b><input value="'+esc((S.ui&&S.ui.brand&&S.ui.brand.title)||'Presupuesto 2')+'" placeholder="Título" onchange="brandSet(\'title\',this.value)"><label class="lb">Texto debajo del título</label><input value="'+esc((S.ui&&S.ui.brand&&S.ui.brand.sub===undefined)?'Control de tu dinero':((S.ui&&S.ui.brand&&S.ui.brand.sub)||''))+'" placeholder="Subtítulo" onchange="brandSet(\'sub\',this.value)"></div>';
+function tileSettings(){var h='<div class="card">'+hd("cftile","Personalizar botones de Inicio","Nombres, iconos, imágenes y colores");return isO("cftile")?h+tileBody()+'</div>':h+'</div>'}
+function tileBody(){
+  var tiles=[['res','Resumen','Consulta general'],['pre','Presupuesto','Montos asignados'],['sal','Salidas','Gastos registrados'],['cue','Cuentas','Saldos y movimientos'],['deu','Deudas','Pagos pendientes'],['fij','Gastos fijos','Control de gastos'],['aju','Ajustes','Personaliza la app']],h='<div><div class="tag" style="margin:8px 0 10px">Cambia título, texto, iconos, imágenes y colores.</div><div class="brand-edit"><b>Título de la pantalla principal</b><input value="'+esc((S.ui&&S.ui.brand&&S.ui.brand.title)||'Presupuesto 2')+'" placeholder="Título" onchange="brandSet(\'title\',this.value)"><label class="lb">Texto debajo del título</label><input value="'+esc((S.ui&&S.ui.brand&&S.ui.brand.sub===undefined)?'Control de tu dinero':((S.ui&&S.ui.brand&&S.ui.brand.sub)||''))+'" placeholder="Subtítulo" onchange="brandSet(\'sub\',this.value)"></div>';
   S.ui=S.ui||{};S.ui.tiles=S.ui.tiles||{};
   tiles.forEach(function(t){var z=S.ui.tiles[t[0]]||{};h+='<div style="border-top:1px solid var(--line);padding:10px 0"><b>'+t[1]+'</b><div class="grid" style="margin-top:7px"><input placeholder="Nombre del botón" value="'+esc(z.name||t[1])+'" onchange="tileSet(\''+t[0]+'\',\'name\',this.value)"><input placeholder="Texto pequeño" value="'+esc(z.sub===undefined?t[2]:z.sub)+'" onchange="tileSet(\''+t[0]+'\',\'sub\',this.value)"></div><div class="grid" style="margin-top:7px"><input placeholder="Emoji o símbolo" value="'+esc(z.icon||'')+'" onchange="tileSet(\''+t[0]+'\',\'icon\',this.value)" maxlength="8"><label class="cp">Color del botón <input type="color" value="'+esc(z.color||'#145DA0')+'" onchange="tileSet(\''+t[0]+'\',\'color\',this.value)"></label></div><label class="cp" style="display:flex;align-items:center;gap:8px;margin-top:7px">Subir icono personalizado <input type="file" accept="image/*" onchange="tileImage(\''+t[0]+'\',this)"></label>'+(z.image?'<button class="ghost" style="margin-top:6px" onclick="tileSet(\''+t[0]+'\',\'image\',\'\')">Quitar imagen</button>':'')+'</div>'});
-  return h+'</div></details>';
+  return h+'</div></div>';
 }
 function brandSet(field,value){S.ui=S.ui||{};S.ui.brand=S.ui.brand||{};S.ui.brand[field]=value;save();draw()}
 function tileSet(k,field,value){S.ui=S.ui||{};S.ui.tiles=S.ui.tiles||{};S.ui.tiles[k]=S.ui.tiles[k]||{};S.ui.tiles[k][field]=value;save();draw();}
@@ -507,14 +533,14 @@ function tileImage(k,input){var file=input.files&&input.files[0];if(!file)return
 function aju(){
   S.ui=S.ui||{};
   return '<div class="card"><h2>📱 Zoom de pantalla</h2><div class="tag" style="margin-bottom:8px">Evita que la pantalla se amplíe accidentalmente con los dedos.</div><label style="display:flex;align-items:center;gap:10px;padding:8px 0"><input type="checkbox" style="width:22px;height:22px" ' +(S.ui.disableZoom?'checked ':'')+ 'onchange="toggleZoom(this.checked)"><span>Bloquear zoom de la aplicación</span></label><div class="tag">Puedes desactivarlo aquí cuando necesites ampliar el contenido.</div></div><div class="card"><h2>🎨 Apariencia</h2><div class="tag" style="margin-bottom:8px">Elige el fondo y los colores de la aplicación.</div><label class="lb" for="themePick">Tema de color</label><select id="themePick" onchange="setTheme(this.value)"><option value="light">Claro · blanco</option><option value="dark">Oscuro</option><option value="blue">Azul</option><option value="system">Automático del dispositivo</option></select></div><div class="tag" style="margin-bottom:10px">Lo que agregues, cambies o elimines aquí aparece solo en todas las pantallas.</div>'
-   +'<div class="card"><h2>Efectos visuales</h2><label style="display:flex;align-items:center;gap:10px;padding:4px 0"><input type="checkbox" style="width:22px;height:22px" '+(S.ui.disableFade?'checked ':'')+'onchange="toggleFade(this.checked)"><span>Desactivar efecto de desvanecido y animaciones</span></label></div>'+cl("cats","Categorías")+cl("tipos","Tipos de gasto")+cl("cuentas","Cuentas, métodos de pago y entidades")+gr()+cl("gastos","Gastos (nombre, categoría y tipo)")+cl("ubic","Ubicaciones de deudas")+appIconSettings()+tileSettings()+icCard()
-   +'<div class="card"><h2>Respaldo y exportar</h2><div class="tag" style="margin-bottom:8px">Copia tus datos para guardarlos en Notas. Para Excel, pega los gastos en una hoja.</div><button style="width:100%;margin-bottom:8px" onclick="copyText(JSON.stringify(S),\'Respaldo copiado\')">Copiar respaldo completo</button><button style="width:100%;margin-bottom:12px" onclick="copyTsv()">Copiar gastos para Excel</button><textarea id="rs" placeholder="Pega aquí un respaldo para restaurarlo"></textarea><button class="ghost" style="width:100%;border:1px solid var(--line)" onclick="restaurar()">Restaurar respaldo (reemplaza todo)</button></div><div class="tag" style="text-align:center;margin-top:6px">Versión 5</div>'}
+   +'<div class="card"><h2>Efectos visuales</h2><label style="display:flex;align-items:center;gap:10px;padding:4px 0"><input type="checkbox" style="width:22px;height:22px" '+(S.ui.disableFade?'checked ':'')+'onchange="toggleFade(this.checked)"><span>Quitar el fondo oscurecido al abrir formularios y las animaciones</span></label></div>'+cl("cats","Categorías")+cl("tipos","Tipos de gasto")+cl("cuentas","Cuentas, métodos de pago y entidades")+gr()+cl("gastos","Gastos (nombre, categoría y tipo)")+cl("ubic","Ubicaciones de deudas")+appIconSettings()+tileSettings()+icCard()
+   +'<div class="card"><h2>Respaldo y exportar</h2><div class="tag" style="margin-bottom:8px">Copia tus datos para guardarlos en Notas. Para Excel, pega los gastos en una hoja.</div><button style="width:100%;margin-bottom:8px" onclick="copyText(JSON.stringify(S),\'Respaldo copiado\')">Copiar respaldo completo</button><button style="width:100%;margin-bottom:12px" onclick="copyTsv()">Copiar gastos para Excel</button><textarea id="rs" placeholder="Pega aquí un respaldo para restaurarlo"></textarea><button class="ghost" style="width:100%;border:1px solid var(--line)" onclick="restaurar()">Restaurar respaldo (reemplaza todo)</button></div><div class="tag" style="text-align:center;margin-top:6px">Versión 8</div>'}
 function toggleFade(enabled){S.ui=S.ui||{};S.ui.disableFade=!!enabled;save();applyFadeSetting();draw()}
 function applyFadeSetting(){document.body.classList.toggle("no-fade",!!(S&&S.ui&&S.ui.disableFade))}
 function toggleZoom(enabled){
   S.ui=S.ui||{};S.ui.disableZoom=!!enabled;save();applyZoomSetting();draw();
 }
-function applyZoomSetting(){
+function applyZoomSetting(){document.body.classList.toggle("no-zoom",!!(S&&S.ui&&S.ui.disableZoom));
   var m=document.getElementById("viewportMeta");if(!m)return;
   m.setAttribute("content",(S&&S.ui&&S.ui.disableZoom)?"width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover":"width=device-width, initial-scale=1, viewport-fit=cover");
 }
@@ -528,6 +554,7 @@ function applyTheme(){
   if(v==="system")root.removeAttribute("data-theme");else root.setAttribute("data-theme",v);
   var m=document.querySelector('meta[name="theme-color"]');if(m)m.content=v==="dark"?"#0C1422":v==="blue"?"#145DA0":"#F3F6FB";
 }
+document.addEventListener("gesturestart",function(e){if(S&&S.ui&&S.ui.disableZoom)e.preventDefault()});
 applyTheme();applyZoomSetting();applyFadeSetting();
 function draw(){
   applyFadeSetting();
@@ -541,7 +568,7 @@ function draw(){
   if(document.getElementById("si"))sinfo();
   if(document.getElementById("sbi"))sbinfo();
   var th=document.getElementById("themePick");if(th){try{th.value=localStorage.getItem("presupuesto2-theme")||"system"}catch(e){th.value="system"}}
-  tp.className="st-"+S.ui.st;tp.innerHTML="";
+  tp.className="st-"+S.ui.st;tp.innerHTML="";applyAppIcon();
 }
 /* Deslizar horizontalmente para cambiar de pestaña sin tocar la barra */
 var swipeStart=null;
