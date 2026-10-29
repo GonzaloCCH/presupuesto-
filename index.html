@@ -231,8 +231,8 @@ function ac(c){var b=bal(c.id);if(isCardAcct(c.id))return {d:b.d,ret:0,cons:card
 function sobr(k){return R((S.ing[k]||0)-sum(S.plan.filter(function(x){return x.k===k}))-sum(S.sob.filter(function(x){return x.k===k&&!x.g})))}
 function mix(a,b,t){var x=parseInt(a.slice(1),16),y=parseInt(b.slice(1),16),r=function(s){return Math.round(((x>>s)&255)*(1-t)+((y>>s)&255)*t)};return "#"+[16,8,0].map(function(s){return ("0"+r(s).toString(16)).slice(-2)}).join("")}
 function cv(c){return "--c:"+c+";--c1:"+mix(c,"#ffffff",0.5)+";--c2:"+mix(c,"#000000",0.35)}
-var IC=[["ini","🏠","Inicio"],["res","📊","Resumen"],["pre","📋","Presup."],["sal","💸","Salidas"],["cue","🏦","Cuentas"],["deu","🧾","Deudas"],["fij","📌","Fijos"],["aju","⚙️","Ajustes"]];
-var DEFC={ini:"#3B82F6",res:"#8B5CF6",pre:"#10B981",sal:"#F59E0B",cue:"#06B6D4",deu:"#EF4444",fij:"#EC4899",aju:"#64748B"};
+var IC=[["ini","🏠","Inicio"],["res","📊","Resumen"],["pre","🧮","Presup."],["sal","💸","Salidas"],["cue","🏦","Cuentas"],["deu","🧾","Deudas"],["fij","📌","Fijos"],["aju","⚙️","Ajustes"]];
+var DEFC={ini:"#3B82F6",res:"#8B5CF6",pre:"#6366F1",sal:"#F59E0B",cue:"#06B6D4",deu:"#EF4444",fij:"#EC4899",aju:"#64748B"};
 function ucol(k){return S.ui.c[k]||DEFC[k]}
 /* edición genérica */
 function ch(L,i,p,n){return ' onchange="up(\''+L+'\',\''+i+'\',\''+p+'\',this.value'+(n?',1':'')+')"'}
@@ -289,7 +289,7 @@ function saldoCard(){
     h+=kv("Disponible total",f(tot))}
   return h+'</div>'}
 function ini(){
-  var tiles=[['res','📊','Resumen','Consulta general'],['pre','📋','Presupuesto','Montos asignados'],['sal','💸','Salidas','Gastos registrados'],['cue','🏦','Cuentas','Saldos y movimientos'],['deu','🧾','Deudas','Pagos pendientes'],['fij','📌','Gastos fijos','Control de gastos'],['aju','⚙️','Ajustes','Personaliza la app']];S.ui=S.ui||{};var brand=S.ui.brand||{},h='<div class="homehero">'+appLogo()+'<h1>'+esc(brand.title||'Presupuesto 2')+'</h1><div class="tag">'+esc(brand.sub===undefined?'Control de tu dinero':brand.sub)+'</div></div><div class="homegrid">';
+  var tiles=[['res','📊','Resumen','Consulta general'],['pre','🧮','Presupuesto','Montos asignados'],['sal','💸','Salidas','Gastos registrados'],['cue','🏦','Cuentas','Saldos y movimientos'],['deu','🧾','Deudas','Pagos pendientes'],['fij','📌','Gastos fijos','Control de gastos'],['aju','⚙️','Ajustes','Personaliza la app']];S.ui=S.ui||{};var brand=S.ui.brand||{},h='<div class="homehero">'+appLogo()+'<h1>'+esc(brand.title||'Presupuesto 2')+'</h1><div class="tag">'+esc(brand.sub===undefined?'Control de tu dinero':brand.sub)+'</div></div><div class="homegrid">';
   S.ui=S.ui||{};S.ui.tiles=S.ui.tiles||{};
   tiles.forEach(function(t){var z=S.ui.tiles[t[0]]||{},label=z.name||t[2],sub=z.sub===undefined?t[3]:z.sub,icon=z.image?'<img src="'+z.image+'" alt="">':'<span class="ic" style="'+cv(ucol(t[0]))+'">'+esc(z.icon||t[1])+'</span>',color=z.color||'#145DA0';h+='<button class="hometile st-'+S.ui.st+'" style="--tile-color:'+esc(color)+'" onclick="go(\''+t[0]+'\')">'+icon+'<b>'+esc(label)+'</b>'+(sub?'<small class="tile-sub">'+esc(sub)+'</small>':'')+'</button>'});
   h+='</div>';
@@ -299,7 +299,7 @@ function ini(){
 
 /* ---- Reglas de gastos, salidas y cuentas ---- */
 function remG(g,k){k=k||key();return R(P(g,k)-U(g,k))}
-function isFixedG(g){var x=by(S.cfg.gastos,g);if(!x)return false;if(S.pl.some(function(p){return p.tp==="F"&&p.g===g}))return true;var t=by(S.cfg.tipos,x.t);return !!(t&&/^fij/i.test(t.n))}
+function isFixedG(g){var x=by(S.cfg.gastos,g);return !!(x&&x.ex==="1")}
 function tplFor(g){return S.pl.filter(function(p){return p.g===g&&p.tp==="F"})[0]||S.pl.filter(function(p){return p.g===g})[0]}
 function salGastos(){var k=key();return S.cfg.gastos.filter(function(g){return remG(g.id,k)>0.004})}
 function preGastos(){var k=key();return S.cfg.gastos.filter(function(g){return !S.plan.some(function(x){return x.g===g.id&&x.k===k})})}
@@ -318,6 +318,13 @@ function compactImages(){
   function sh(u,max,cb){var im=new Image();im.onload=function(){var s=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.max(1,Math.round(im.width*s));c.height=Math.max(1,Math.round(im.height*s));c.getContext("2d").drawImage(im,0,0,c.width,c.height);cb(c.toDataURL("image/png"))};im.src=u}
   var a=S.ui&&S.ui.appIcon;if(a&&a.image&&a.image.length>120000)sh(a.image,192,function(u){a.image=u;if(save())draw()});
   var t=S.ui&&S.ui.tiles;if(t)Object.keys(t).forEach(function(k){var z=t[k];if(z&&z.image&&z.image.length>120000)sh(z.image,128,function(u){z.image=u;if(save())draw()})})}
+
+/* ---- Registro rápido: abrir directo en Nueva salida (para el toque trasero) ---- */
+function toggleQuick(v){S.ui=S.ui||{};S.ui.quickSalida=!!v;save();draw();msg(v?"Listo: al abrir la app verás Nueva salida":"Registro rápido desactivado")}
+function quickCard(){var on=!!(S.ui&&S.ui.quickSalida);return '<div class="card"><h2>⚡ Registro rápido de salidas</h2><label style="display:flex;align-items:center;gap:10px;padding:4px 0"><input type="checkbox" style="width:22px;height:22px" '+(on?'checked ':'')+'onchange="toggleQuick(this.checked)"><span>Al abrir la app, mostrar Nueva salida</span></label><div class="tag">Úsalo con un atajo del iPhone y el toque trasero: al abrir la app aparece directo el formulario de salida. Para entrar normal, toca Cerrar o desactívalo aquí.</div></div>'}
+function quickStart(){var h=location.hash;if(h==="#salida"||(S.ui&&S.ui.quickSalida)){V.tab="ini";openSh("s")}else if(h==="#presupuesto"){V.tab="ini";openSh("p")}}
+var _hid=0;
+document.addEventListener("visibilitychange",function(){if(document.hidden){_hid=Date.now();return}if(S.ui&&S.ui.quickSalida&&_hid&&Date.now()-_hid>3000&&!V.sheet){V.tab="ini";openSh("s")}});
 function sheet(){
   if(!V.sheet)return"";
   var c=S.cfg,sb=V.sheet==="s"&&V.sob,ok=sb?c.cuentas.length:(c.gastos.length&&c.cuentas.length);
@@ -344,7 +351,7 @@ function addP(){
 function sinfo(){
   var g=val("sg"),p=val("sp"),e=document.getElementById("si");if(!e)return;var h="";
   if(!g&&!salGastos().length)h+='<span class="or">No hay gastos con saldo disponible en esta quincena.</span><br>';
-  if(g){var pr=P(g,key()),u=U(g,key()),s=stt(pr,u),fx=isFixedG(g);h+='Saldo asignado: <b class="'+s.c+'">'+f(s.so)+'</b> (presupuesto '+f(pr)+' · usado '+f(u)+')<br>'+(fx?'<b>Gasto fijo: la salida debe ser exactamente '+f(s.so)+'</b>':'No puedes pasarte de '+f(s.so))+'<br>'}
+  if(g){var pr=P(g,key()),u=U(g,key()),s=stt(pr,u),fx=isFixedG(g);h+='Saldo asignado: <b class="'+s.c+'">'+f(s.so)+'</b> (presupuesto '+f(pr)+' · usado '+f(u)+')<br>'+(fx?'<b>Este gasto exige el monto exacto: '+f(s.so)+'</b>':'Puedes pagar una parte; no puedes pasarte de '+f(s.so))+'<br>'}
   if(p){var c=by(S.cfg.cuentas,p),a=c?ac(c):null;if(a)h+=isCardAcct(p)?'Tarjeta · crédito disponible '+f(Math.max(0,(S.tc.lim||0)-cardDebt())):'Disponible en la cuenta: <b class="'+(a.d<0?"or":"ok")+'">'+f(a.d)+'</b>'}
   e.innerHTML=h}
 function addS(){
@@ -352,7 +359,7 @@ function addS(){
   if(!g||!p||!(m>0)){msg("Elige gasto y cuenta, y escribe un monto mayor que 0.");return}
   var rem=remG(g);
   if(!(rem>0)){msg("Este gasto ya no tiene saldo disponible.");return}
-  if(isFixedG(g)){if(R(m)!==rem){msg("Gasto fijo: la salida debe ser exactamente "+f(rem)+".");return}}
+  if(isFixedG(g)){if(R(m)!==rem){msg("Este gasto exige el monto exacto: "+f(rem)+".");return}}
   else if(R(m)>rem){msg("La salida supera el saldo asignado: "+f(rem)+".");return}
   var c=by(S.cfg.cuentas,p),a=ac(c),corto=isCardAcct(p)?(m>Math.max(0,(S.tc.lim||0)-cardDebt())):(m>a.d);
   if(isCardAcct(p)&&corto){msg("La salida supera el crédito disponible: "+f(Math.max(0,(S.tc.lim||0)-cardDebt())));return}
@@ -473,7 +480,7 @@ function addGr(){
 function icCard(){
   var ST=[["emoji","Emoji"],["esfera","Esfera 3D"],["relieve","Relieve 3D"],["cristal","Cristal"],["plano","Plano"]],h='<div class="card">'+hd("cfic","Iconos de navegación","Diseño y colores");
   if(!isO("cfic"))return h+'</div>';
-  h+='<h2>Diseño</h2><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px">'+ST.map(function(s){return '<button class="stp'+(S.ui.st===s[0]?' on':'')+'" onclick="S.ui.st=\''+s[0]+'\';save();draw()"><div class="st-'+s[0]+'"><span class="ic" style="'+cv(ucol("pre"))+'">📋</span></div>'+s[1]+'</button>'}).join("")+'</div>'
+  h+='<h2>Diseño</h2><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px">'+ST.map(function(s){return '<button class="stp'+(S.ui.st===s[0]?' on':'')+'" onclick="S.ui.st=\''+s[0]+'\';save();draw()"><div class="st-'+s[0]+'"><span class="ic" style="'+cv(ucol("pre"))+'">🧮</span></div>'+s[1]+'</button>'}).join("")+'</div>'
    +'<h2>Color de cada icono</h2><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">'+IC.map(function(t){return '<label class="cp"><input type="color" value="'+ucol(t[0])+'" onchange="setCol(\''+t[0]+'\',this.value)">'+t[2]+'</label>'}).join("")+'</div>'
    +'<label class="cp" style="margin-bottom:8px">Un mismo color para todos<input type="color" value="#2457D6" onchange="allCol(this.value)"></label><button class="ghost" style="width:100%;border:1px solid var(--line)" onclick="resetCol()">Restablecer colores</button>';
   return h+'</div>'}
@@ -511,7 +518,7 @@ function fij(){return grp("F","Gastos fijos")+grp("V","Gastos variables")}
 function cl(k,t){
   var L=S.cfg[k],h='<div class="card">'+hd("cf"+k,t,L.length+" elementos");
   if(!isO("cf"+k))return h+'</div>';
-  if(k==="gastos"){L.forEach(function(x){h+='<div class="item"><div class="row" onclick="ted(\'cg:'+x.id+'\')" style="cursor:pointer"><b>'+esc(x.n)+'</b><span class="tag">'+nmx(S.cfg.cats,x.c)+' · '+nmx(S.cfg.tipos,x.t)+'</span></div>'+(V.ed==="cg:"+x.id?form("cfg.gastos",x,[["n","Nombre","t"],["c","Categoría","s",S.cfg.cats],["t","Tipo","s",S.cfg.tipos]]):'')+'</div>'});
+  if(k==="gastos"){L.forEach(function(x){h+='<div class="item"><div class="row" onclick="ted(\'cg:'+x.id+'\')" style="cursor:pointer"><b>'+esc(x.n)+'</b><span class="tag">'+nmx(S.cfg.cats,x.c)+' · '+nmx(S.cfg.tipos,x.t)+'</span></div>'+(V.ed==="cg:"+x.id?form("cfg.gastos",x,[["n","Nombre","t"],["c","Categoría","s",S.cfg.cats],["t","Tipo","s",S.cfg.tipos],["ex","Exigir monto exacto en la salida (si no, se puede pagar en partes)","s",[{id:"1",n:"Sí, debe ser el monto exacto"}]]]):'')+'</div>'});
     h+='<input id="cak'+k+'" placeholder="Nuevo gasto" style="margin:8px 0"><div class="grid"><select id="cgc">'+op(S.cfg.cats,"","Categoría…")+'</select><select id="cgt">'+op(S.cfg.tipos,"","Tipo…")+'</select></div>'}
   else{L.forEach(function(x){h+='<div class="row" style="margin-bottom:6px"><input value="'+esc(x.n)+'"'+ch("cfg."+k,x.id,"n")+'><button class="ghost" onclick="rm(\'cfg.'+k+'\',\''+x.id+'\')">Eliminar</button></div>'});
     h+='<input id="cak'+k+'" placeholder="Nuevo elemento" style="margin:4px 0 8px">'}
@@ -561,8 +568,8 @@ function tileImage(k,input){var file=input.files&&input.files[0];if(!file)return
 function aju(){
   S.ui=S.ui||{};
   return '<div class="card"><h2>📱 Zoom de pantalla</h2><div class="tag" style="margin-bottom:8px">Evita que la pantalla se amplíe accidentalmente con los dedos.</div><label style="display:flex;align-items:center;gap:10px;padding:8px 0"><input type="checkbox" style="width:22px;height:22px" ' +(S.ui.disableZoom?'checked ':'')+ 'onchange="toggleZoom(this.checked)"><span>Bloquear zoom de la aplicación</span></label><div class="tag">Puedes desactivarlo aquí cuando necesites ampliar el contenido.</div></div><div class="card"><h2>🎨 Apariencia</h2><div class="tag" style="margin-bottom:8px">Elige el fondo y los colores de la aplicación.</div><label class="lb" for="themePick">Tema de color</label><select id="themePick" onchange="setTheme(this.value)"><option value="light">Claro · blanco</option><option value="dark">Oscuro</option><option value="blue">Azul</option><option value="system">Automático del dispositivo</option></select></div><div class="tag" style="margin-bottom:10px">Lo que agregues, cambies o elimines aquí aparece solo en todas las pantallas.</div>'
-   +'<div class="card"><h2>Efectos visuales</h2><label style="display:flex;align-items:center;gap:10px;padding:4px 0"><input type="checkbox" style="width:22px;height:22px" '+(S.ui.disableFade?'checked ':'')+'onchange="toggleFade(this.checked)"><span>Quitar el fondo oscurecido al abrir formularios y las animaciones</span></label></div>'+cl("cats","Categorías")+cl("tipos","Tipos de gasto")+cl("cuentas","Cuentas, métodos de pago y entidades")+asCard()+gr()+cl("gastos","Gastos (nombre, categoría y tipo)")+cl("ubic","Ubicaciones de deudas")+appIconSettings()+tileSettings()+icCard()
-   +'<div class="card"><h2>Respaldo y exportar</h2><div class="tag" style="margin-bottom:8px">Copia tus datos para guardarlos en Notas. Para Excel, pega los gastos en una hoja.</div><button style="width:100%;margin-bottom:8px" onclick="copyText(JSON.stringify(S),\'Respaldo copiado\')">Copiar respaldo completo</button><button style="width:100%;margin-bottom:12px" onclick="copyTsv()">Copiar gastos para Excel</button><textarea id="rs" placeholder="Pega aquí un respaldo para restaurarlo"></textarea><button class="ghost" style="width:100%;border:1px solid var(--line)" onclick="restaurar()">Restaurar respaldo (reemplaza todo)</button></div><div class="tag" style="text-align:center;margin-top:6px">Versión 9</div>'}
+   +'<div class="card"><h2>Efectos visuales</h2><label style="display:flex;align-items:center;gap:10px;padding:4px 0"><input type="checkbox" style="width:22px;height:22px" '+(S.ui.disableFade?'checked ':'')+'onchange="toggleFade(this.checked)"><span>Quitar el fondo oscurecido al abrir formularios y las animaciones</span></label></div>'+quickCard()+cl("cats","Categorías")+cl("tipos","Tipos de gasto")+cl("cuentas","Cuentas, métodos de pago y entidades")+asCard()+gr()+cl("gastos","Gastos (nombre, categoría y tipo)")+cl("ubic","Ubicaciones de deudas")+appIconSettings()+tileSettings()+icCard()
+   +'<div class="card"><h2>Respaldo y exportar</h2><div class="tag" style="margin-bottom:8px">Copia tus datos para guardarlos en Notas. Para Excel, pega los gastos en una hoja.</div><button style="width:100%;margin-bottom:8px" onclick="copyText(JSON.stringify(S),\'Respaldo copiado\')">Copiar respaldo completo</button><button style="width:100%;margin-bottom:12px" onclick="copyTsv()">Copiar gastos para Excel</button><textarea id="rs" placeholder="Pega aquí un respaldo para restaurarlo"></textarea><button class="ghost" style="width:100%;border:1px solid var(--line)" onclick="restaurar()">Restaurar respaldo (reemplaza todo)</button></div><div class="tag" style="text-align:center;margin-top:6px">Versión 11</div>'}
 function toggleFade(enabled){S.ui=S.ui||{};S.ui.disableFade=!!enabled;save();applyFadeSetting();draw()}
 function applyFadeSetting(){document.body.classList.toggle("no-fade",!!(S&&S.ui&&S.ui.disableFade))}
 function toggleZoom(enabled){
@@ -583,7 +590,7 @@ function applyTheme(){
   var m=document.querySelector('meta[name="theme-color"]');if(m)m.content=v==="dark"?"#0C1422":v==="blue"?"#145DA0":"#F3F6FB";
 }
 document.addEventListener("gesturestart",function(e){if(S&&S.ui&&S.ui.disableZoom)e.preventDefault()});
-applyTheme();applyZoomSetting();applyFadeSetting();try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}compactImages();
+applyTheme();applyZoomSetting();applyFadeSetting();try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}compactImages();quickStart();
 function draw(){
   applyFadeSetting();
   var T={ini:ini,res:res,pre:pre,sal:sal,cue:cue,deu:deu,fij:fij,aju:aju},m={},ap=document.getElementById("app"),sh=document.getElementById("sheet"),tp=document.getElementById("top"),isF=/^(INPUT|SELECT|TEXTAREA)$/;
