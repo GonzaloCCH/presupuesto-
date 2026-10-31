@@ -169,6 +169,17 @@ input[type=color]{width:100%;min-width:0;max-width:100%;height:40px;padding:3px}
 .fchip{display:flex;justify-content:space-between;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:5px 8px;font-size:13px;min-width:0}
 .fchip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--mut)}
 .fchip b{white-space:nowrap}.fchip.tot{background:var(--accbg)}
+
+/* Ajuste de iconos: tamaño compacto y distribución horizontal */
+.homegrid{gap:10px}
+.hometile{min-height:88px!important;padding:10px 12px!important;gap:12px!important;flex-direction:row!important;justify-content:flex-start!important;text-align:left!important;border-radius:18px!important}
+.hometile .ic{width:46px!important;height:46px!important;min-width:46px!important;font-size:27px!important;margin:0!important;display:flex;align-items:center;justify-content:center}
+.hometile.st-emoji .ic{font-size:31px!important}
+.hometile img{width:46px!important;height:46px!important;min-width:46px!important;border-radius:10px!important;object-fit:contain}
+.hometile b{font-size:15px!important;line-height:1.2}
+.hometile .tile-sub{font-size:11px!important;line-height:1.25}
+@media(max-width:390px){.hometile{gap:8px!important;padding:9px!important}.hometile .ic,.hometile img{width:40px!important;height:40px!important;min-width:40px!important}.hometile b{font-size:14px!important}}
+
 </style>
 </head>
 <body>
@@ -188,6 +199,15 @@ mig();
 var _n=new Date();
 var V={tab:"ini",mes:_n.getFullYear()+"-"+("0"+(_n.getMonth()+1)).slice(-2),q:_n.getDate()<=15?1:2,o:{gp:true,sl:true,fnew:true},ed:"",met:"",sheet:"",all:false};
 var MES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+/* Mantener la quincena elegida: no cambiar automáticamente al avanzar el calendario */
+try{
+  var _periodoGuardado=JSON.parse(localStorage.getItem("presupuesto2-periodo-activo")||"null");
+  if(_periodoGuardado&&/^\\d{4}-\\d{2}$/.test(_periodoGuardado.mes)&&(_periodoGuardado.q===1||_periodoGuardado.q===2)){
+    V.mes=_periodoGuardado.mes;V.q=_periodoGuardado.q;
+  }
+}catch(_e){}
+function guardarPeriodoActivo(){try{localStorage.setItem("presupuesto2-periodo-activo",JSON.stringify({mes:V.mes,q:V.q}))}catch(_e){}}
+
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));return true}catch(e){try{msg("No se pudo guardar: el almacenamiento está lleno. Usa imágenes más pequeñas.")}catch(x){}return false}}
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function f(n){return Number(n||0).toLocaleString("es",{minimumFractionDigits:2,maximumFractionDigits:2})}
@@ -263,7 +283,7 @@ function form(L,x,fl){return '<div class="ef">'+fl.map(function(c){var h='<label
 function FP(){return [["g","Gasto","s",S.cfg.gastos],["m","Monto","n"],["p","Cuenta","s",S.cfg.cuentas],["f","Fecha","d"],["nt","Notas","t"]]}
 function hd(k,t,s,np){return '<div class="hd" onclick="tg(\''+k+'\')"><div><b>'+t+'</b><div class="tag">'+s+'</div></div><span class="hr"><span class="tgb">'+(V.o[k]?"Ocultar ▾":"Ver ▸")+'</span></span></div>'}
 function kv(a,b){return '<div class="kv"><span>'+a+'</span><b>'+b+'</b></div>'}
-function head(){return '<div class="grid"><input type="month" value="'+V.mes+'" onchange="V.mes=this.value||V.mes;draw()"><select onchange="V.q=+this.value;draw()"><option value="1"'+(V.q==1?" selected":"")+'>1ª quincena</option><option value="2"'+(V.q==2?" selected":"")+'>2ª quincena</option></select></div>'}
+function head(){return '<div class="grid"><input type="month" value="'+V.mes+'" onchange="V.mes=this.value||V.mes;guardarPeriodoActivo();draw()"><select onchange="V.q=+this.value;guardarPeriodoActivo();draw()"><option value="1"'+(V.q==1?" selected":"")+'>1ª quincena</option><option value="2"'+(V.q==2?" selected":"")+'>2ª quincena</option></select></div>'}
 /* líneas */
 function lineP(x){
   var g=by(S.cfg.gastos,x.g)||{n:"(eliminado)"},p=P(x.g,x.k),u=U(x.g,x.k),s=stt(p,u),low=s.so>0&&s.so<=p*0.2;
@@ -405,7 +425,7 @@ function copiarQ(){
   var m=V.mes,q=2;if(V.q==2){var b=m.split("-"),y=+b[0],n=+b[1]+1;if(n>12){n=1;y++}m=y+"-"+("0"+n).slice(-2);q=1}
   var d=m+(q==1?"-01":"-16"),nk=m+"-"+q;
   a.forEach(function(x){S.plan.push({id:id(),g:x.g,m:x.m,p:x.p,f:d,nt:x.nt,k:nk})});
-  if(!S.ing[nk])S.ing[nk]=S.ing[k]||0;save();V.mes=m;V.q=q;draw();msg("Copiados "+a.length+" gastos a la siguiente quincena")}
+  if(!S.ing[nk])S.ing[nk]=S.ing[k]||0;save();V.mes=m;V.q=q;guardarPeriodoActivo();draw();msg("Copiados "+a.length+" gastos a la siguiente quincena")}
 function addAs(){
   var m=parseFloat(val("sam")),src=val("sas"),dst=val("sap"),so=sobr(key());
   if(!dst||!(m>0)){msg("Elige una cuenta de destino y escribe un monto mayor que 0.");return}
