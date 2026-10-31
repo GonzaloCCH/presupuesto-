@@ -157,6 +157,18 @@ input[type=color]{width:100%;min-width:0;max-width:100%;height:40px;padding:3px}
 .no-zoom,.no-zoom *{touch-action:pan-x pan-y}
 .app-logo{width:58px;height:58px;border-radius:14px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:30px;overflow:hidden;color:#fff}
 .app-logo img{width:100%;height:100%;object-fit:cover}
+
+/* Correcciones v13 */
+.homegrid{gap:12px}
+.hometile{min-height:150px;padding:14px 8px;gap:8px}
+.hometile .ic{width:78px;height:78px;font-size:44px}
+.hometile.st-emoji .ic{font-size:62px}
+.hometile img{width:78px;height:78px;border-radius:18px}
+.hometile b{font-size:17px}
+.fchips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.fchip{display:flex;justify-content:space-between;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:5px 8px;font-size:13px;min-width:0}
+.fchip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--mut)}
+.fchip b{white-space:nowrap}.fchip.tot{background:var(--accbg)}
 </style>
 </head>
 <body>
@@ -174,7 +186,7 @@ if(!S)S={cfg:{cats:[],tipos:[],cuentas:[],ubic:[],gastos:[]},ing:{},plan:[],sal:
 mig();
 
 var _n=new Date();
-var V={tab:"ini",mes:_n.getFullYear()+"-"+("0"+(_n.getMonth()+1)).slice(-2),q:_n.getDate()<=15?1:2,o:{gp:true,sl:true},ed:"",met:"",sheet:"",all:false};
+var V={tab:"ini",mes:_n.getFullYear()+"-"+("0"+(_n.getMonth()+1)).slice(-2),q:_n.getDate()<=15?1:2,o:{gp:true,sl:true,fnew:true},ed:"",met:"",sheet:"",all:false};
 var MES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));return true}catch(e){try{msg("No se pudo guardar: el almacenamiento está lleno. Usa imágenes más pequeñas.")}catch(x){}return false}}
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
@@ -193,7 +205,7 @@ function clr(l){l.forEach(function(i){var e=document.getElementById(i);if(e)e.va
 function msg(t){var e=document.getElementById("toast");e.textContent=t;e.className="on";clearTimeout(msg.t);msg.t=setTimeout(function(){e.className=""},2800)}
 function tg(k){V.o[k]=!V.o[k];draw()}
 function pin(k){S.pin[k]=!S.pin[k];if(!S.pin[k])V.o[k]=true;save();draw()}
-function isO(k){return !!(V.o[k]||S.pin[k])}
+function isO(k){return !!V.o[k]}
 function ted(k){V.ed=V.ed===k?"":k;draw()}
 function go(t){V.tab=t;draw();window.scrollTo(0,0)}
 function openSh(t){V.sheet=t;V.previewG="";V.salG="";V.sob=false;draw();window.scrollTo(0,0)}
@@ -222,12 +234,16 @@ function inUse(k,i){var c=S.cfg;
 function mig(){
   if(!S.cfg)S.cfg={cats:[],tipos:[],cuentas:[],ubic:[],gastos:[]};
   ["plan","sal","acum","deudas","pagos","pl","tcp","vc","sob","grupos"].forEach(function(k){S[k]=S[k]||[]});
-  S.transfers=S.transfers||[];S.ing=S.ing||{};S.ps=S.ps||{F:0,V:0};S.pin=S.pin||{};S.tc=S.tc||{lim:0};S.ui=S.ui||{st:"esfera",c:{}};S.ui.c=S.ui.c||{};
+  S.transfers=S.transfers||[];S.ing=S.ing||{};S.ps=S.ps||{F:0,V:0};S.pin={};S.tc=S.tc||{lim:0};S.ui=S.ui||{st:"esfera",c:{}};S.ui.c=S.ui.c||{};
   /* En versiones antiguas la cuenta de tarjeta se guardaba como retenida. Recuperarla una sola vez. */
   if(!S.tc.cta){var legacy=S.cfg.cuentas.filter(function(c){return c.r});if(legacy.length===1)S.tc.cta=legacy[0].id;}
   S.cfg.cuentas.forEach(function(c){c.r=false;});
   if(!S.alwaysSal)S.alwaysSal=S.tc.cta?[S.tc.cta]:[];
+  S.pl=S.pl.filter(function(x){return by(S.cfg.gastos,x.g)});
+  S.cfg.gastos.forEach(function(g){if(!S.pl.some(function(x){return x.g===g.id}))S.pl.push({id:id(),tp:tpOf(g.t),g:g.id,m:0,p:""})});
+  S.pl.forEach(function(x){var g=by(S.cfg.gastos,x.g);if(g&&g.t)x.tp=tpOf(g.t)});
 }
+function tpOf(t){var x=by(S.cfg.tipos,t);return x&&/^fij/i.test(x.n)?"F":"V"}
 function ac(c){var b=bal(c.id);if(isCardAcct(c.id))return {d:b.d,ret:0,cons:cardDebt(),lib:0,b:b};return {d:b.d,ret:0,cons:0,lib:0,b:b}}
 function sobr(k){return R((S.ing[k]||0)-sum(S.plan.filter(function(x){return x.k===k}))-sum(S.sob.filter(function(x){return x.k===k&&!x.g})))}
 function mix(a,b,t){var x=parseInt(a.slice(1),16),y=parseInt(b.slice(1),16),r=function(s){return Math.round(((x>>s)&255)*(1-t)+((y>>s)&255)*t)};return "#"+[16,8,0].map(function(s){return ("0"+r(s).toString(16)).slice(-2)}).join("")}
@@ -245,11 +261,7 @@ function rm(L,i){var c=L.indexOf("cfg.")===0;if(c&&inUse(L.slice(4),i)){msg("No 
 function form(L,x,fl){return '<div class="ef">'+fl.map(function(c){var h='<label>'+c[1]+'</label>';
   h+=c[2]==="s"?'<select'+ch(L,x.id,c[0])+'>'+op(c[3],x[c[0]],"—")+'</select>':'<input type="'+(c[2]==="n"?'number" inputmode="decimal" step="0.01':c[2]==="d"?'date':'text')+'" value="'+esc(x[c[0]])+'"'+ch(L,x.id,c[0],c[2]==="n")+'>';return h}).join("")+'<button class="ghost" onclick="rm(\''+L+'\',\''+x.id+'\')">Eliminar</button></div>'}
 function FP(){return [["g","Gasto","s",S.cfg.gastos],["m","Monto","n"],["p","Cuenta","s",S.cfg.cuentas],["f","Fecha","d"],["nt","Notas","t"]]}
-function hd(k,t,s,np){
-  var p=S.pin[k],r='';
-  if(p)r='<span class="tgb" onclick="event.stopPropagation();pin(\''+k+'\')">📌 Fija</span>';
-  else r=(np?'':'<span class="pn" onclick="event.stopPropagation();pin(\''+k+'\')" title="Mantener abierta">📌</span>')+'<span class="tgb">'+(V.o[k]?"Ocultar ▾":"Ver ▸")+'</span>';
-  return '<div class="hd" onclick="'+(p?'':'tg(\''+k+'\')')+'"><div><b>'+t+'</b><div class="tag">'+s+'</div></div><span class="hr">'+r+'</span></div>'}
+function hd(k,t,s,np){return '<div class="hd" onclick="tg(\''+k+'\')"><div><b>'+t+'</b><div class="tag">'+s+'</div></div><span class="hr"><span class="tgb">'+(V.o[k]?"Ocultar ▾":"Ver ▸")+'</span></span></div>'}
 function kv(a,b){return '<div class="kv"><span>'+a+'</span><b>'+b+'</b></div>'}
 function head(){return '<div class="grid"><input type="month" value="'+V.mes+'" onchange="V.mes=this.value||V.mes;draw()"><select onchange="V.q=+this.value;draw()"><option value="1"'+(V.q==1?" selected":"")+'>1ª quincena</option><option value="2"'+(V.q==2?" selected":"")+'>2ª quincena</option></select></div>'}
 /* líneas */
@@ -303,6 +315,7 @@ function remG(g,k){k=k||key();return R(P(g,k)-U(g,k))}
 function isFixedG(g){var x=by(S.cfg.gastos,g);return !!(x&&x.ex==="1")}
 function tplFor(g){return S.pl.filter(function(p){return p.g===g&&p.tp==="F"})[0]||S.pl.filter(function(p){return p.g===g})[0]}
 function salGastos(){var k=key();return S.cfg.gastos.filter(function(g){return remG(g.id,k)>0.004})}
+function preOpts(){var sel=V.previewG||"";return '<option value="">Gasto…</option>'+preGastos().map(function(g){var t=tplFor(g.id),okk=t&&t.m>0&&t.p;return '<option value="'+g.id+'"'+(g.id===sel?' selected':'')+'>'+esc(g.n)+(okk?'':' · sin monto')+'</option>'}).join("")}
 function preGastos(){var k=key();return S.cfg.gastos.filter(function(g){return !S.plan.some(function(x){return x.g===g.id&&x.k===k})})}
 function alwaysSal(){return (S.alwaysSal||[]).filter(function(i){return by(S.cfg.cuentas,i)})}
 function salAccts(g){var ids=[],k=key();S.plan.forEach(function(x){if(x.g===g&&x.k===k&&ids.indexOf(x.p)<0)ids.push(x.p)});alwaysSal().forEach(function(i){if(ids.indexOf(i)<0)ids.push(i)});return ids.map(function(i){return by(S.cfg.cuentas,i)}).filter(Boolean)}
@@ -332,7 +345,7 @@ function sheet(){
   var h='<div class="sh"><div class="row"><b>'+(V.sheet==="p"?"Nuevo gasto del presupuesto":sb?"Salida del sobrante":"Nueva salida")+'</b><button class="ghost" onclick="closeSh()">✕ Cerrar</button></div><div class="tag" style="margin:2px 0 10px">'+nom(key())+'</div>';
   if(V.sheet==="s")h+='<div class="grid"><button class="'+(V.sob?"alt":"")+'" onclick="V.sob=false;draw()">Gasto normal</button><button class="'+(V.sob?"":"alt")+'" onclick="V.sob=true;draw()">Del sobrante</button></div>';
   if(!ok)return h+'<div class="empty">Primero crea '+(sb?'tus cuentas':'tus gastos y cuentas')+' en Ajustes.</div><button style="width:100%" onclick="closeSh();go(\'aju\')">Ir a Ajustes</button></div>';
-  if(V.sheet==="p")return h+'<div class="grid"><select id="pg" onchange="onPreG()">'+op(preGastos(),V.previewG||"","Gasto…")+'</select><input id="pm" type="number" inputmode="decimal" step="0.01" placeholder="Monto"></div><div class="grid"><select id="pp">'+op(budgetAccounts(),"","Cuenta…")+'</select><input id="pf" type="date" value="'+today()+'"></div><input id="pn" placeholder="Notas (opcional)" style="margin-bottom:8px"><button style="width:100%" onclick="addP()">Guardar gasto</button></div>';
+  if(V.sheet==="p")return h+'<div class="grid"><select id="pg" onchange="onPreG()">'+preOpts()+'</select><input id="pm" readonly placeholder="Monto" style="opacity:.85"></div><div class="grid"><select id="pp" disabled style="opacity:.85">'+op(budgetAccounts(),"","Cuenta…")+'</select><input id="pf" type="date" value="'+today()+'"></div><div class="tag" style="margin-bottom:8px">El monto y la cuenta vienen de Gastos fijos. Para cambiarlos, edítalos allí.</div><input id="pn" placeholder="Notas (opcional)" style="margin-bottom:8px"><button style="width:100%" onclick="addP()">Guardar gasto</button></div>';
   if(sb)return h+'<input id="sbn" list="gl" placeholder="Nombre del gasto" style="margin-bottom:8px"><datalist id="gl">'+c.gastos.map(function(x){return '<option value="'+esc(x.n)+'">'}).join("")+'</datalist><div class="grid"><select id="sbc">'+op(c.cats,"","Categoría…")+'</select><select id="sbt">'+op(c.tipos,"","Tipo…")+'</select></div><div class="grid"><input id="sbm" type="number" inputmode="decimal" step="0.01" placeholder="Monto"><select id="sbp" onchange="onSbp()">'+sbAcctOpts()+'</select></div><div class="grid"><input id="sbf" type="date" value="'+today()+'"><input id="sbo" placeholder="Notas (opcional)"></div><div id="sbi" class="tag" style="margin-bottom:8px"></div><button style="width:100%" onclick="addSb()">Guardar salida del sobrante</button></div>';
   return h+'<div class="grid"><select id="sg" onchange="onSalG()">'+op(salGastos(),V.salG||"","Gasto…")+'</select><input id="sm" type="number" inputmode="decimal" step="0.01" placeholder="Monto"></div><div class="grid"><select id="sp" onchange="sinfo()">'+salAcctOpts(V.salG||"")+'</select><input id="sf" type="date" value="'+today()+'"></div><input id="sn" placeholder="Notas (opcional)" style="margin-bottom:8px"><div id="si" class="tag" style="margin-bottom:8px"></div><button style="width:100%" onclick="addS()">Guardar salida</button></div>'}
 function addSb(){
@@ -345,10 +358,10 @@ function addSb(){
   save();clr(["sbn","sbc","sbt","sbm","sbp","sbo"]);draw();msg("Salida del sobrante guardada")}
 function sbinfo(){var e=document.getElementById("sbi");if(!e)return;var p=val("sbp"),so=p?surplusAcct(p):0;if(!p&&!S.cfg.cuentas.some(function(c){return surplusAcct(c.id)>0.004})){e.innerHTML='<span class="or">No hay cuentas con sobrante. Distribúyelo primero en Presupuesto.</span>';return}e.innerHTML='Sobrante disponible en la cuenta: <b class="'+(so<0?"or":"ok")+'">'+f(so)+'</b> · solo se permiten salidas hasta ese saldo'}
 function addP(){
-  var g=val("pg"),m=parseFloat(val("pm")),p=val("pp");
-  if(!g||!p||!(m>0)){msg("Elige gasto y cuenta, y escribe un monto mayor que 0.");return}
-  if(isCardAcct(p)){msg("La cuenta asignada a la tarjeta no admite gastos presupuestados. Registra las compras desde Salidas.");return}
-  S.plan.push({id:id(),g:g,m:m,p:p,f:val("pf")||today(),nt:val("pn"),k:key()});save();V.previewG="";clr(["pg","pm","pp","pn"]);draw();msg("Gasto guardado")}
+  var g=val("pg");if(!g){msg("Elige el gasto que quieres agregar.");return}
+  var t=tplFor(g);if(!t||!(t.m>0)||!t.p||!by(S.cfg.cuentas,t.p)){msg("Completa el monto y la cuenta de este gasto en Gastos fijos.");return}
+  if(isCardAcct(t.p)){msg("La cuenta asignada a la tarjeta no admite gastos presupuestados. Cambia la cuenta en Gastos fijos.");return}
+  S.plan.push({id:id(),g:g,m:t.m,p:t.p,f:val("pf")||today(),nt:val("pn"),k:key()});save();V.previewG="";clr(["pg","pm","pp","pn"]);draw();msg("Gasto agregado al presupuesto")}
 function sinfo(){
   var g=val("sg"),p=val("sp"),e=document.getElementById("si");if(!e)return;var h="";
   if(!g&&!salGastos().length)h+='<span class="or">No hay gastos con saldo disponible en esta quincena.</span><br>';
@@ -505,16 +518,38 @@ function deu(){
 function addD(){var m=parseFloat(val("dm"));if(!val("dn")||!(m>0)){msg("Escribe nombre y un monto mayor que 0.");return}S.deudas.push({id:id(),n:val("dn"),m:m,u:val("du"),f:val("df"),nota:val("dt")});V.o.dl=true;save();clr(["dn","dm","du","dt"]);draw();msg("Deuda agregada")}
 function addPago(d){var m=parseFloat(val("pm"+d));if(!(m>0)){msg("Escribe un monto mayor que 0.");return}S.pagos.push({id:id(),d:d,m:m,f:val("pf"+d)||today(),nt:val("pn"+d)});save();clr(["pm"+d,"pn"+d]);draw();msg("Pago registrado")}
 /* fijos */
+function fijTotales(){
+  var m={},tot=0;S.pl.forEach(function(x){if(x.p){m[x.p]=(m[x.p]||0)+Number(x.m||0);tot+=Number(x.m||0)}});
+  var L=budgetAccounts();
+  return '<div class="card"><h2 style="margin-bottom:6px">Total por cuenta</h2>'+(L.length?'<div class="fchips">'+L.map(function(c){return '<div class="fchip"><span>'+esc(c.n)+'</span><b class="'+(m[c.id]?"":"mu")+'">'+f(m[c.id]||0)+'</b></div>'}).join("")+'<div class="fchip tot"><span>Total</span><b>'+f(R(tot))+'</b></div></div>':'<div class="tag">Agrega tus cuentas en Ajustes.</div>')+'</div>'}
+function fijNuevo(){
+  var c=S.cfg,ok=c.cats.length&&c.tipos.length&&budgetAccounts().length,h='<div class="card">'+hd("fnew","Nuevo gasto","Escribe el gasto con su categoría, tipo, monto y cuenta");
+  if(!isO("fnew"))return h+'</div>';
+  if(!ok)return h+'<div class="empty">Primero crea categorías, tipos de gasto y cuentas en Ajustes.</div><button style="width:100%" onclick="go(\'aju\')">Ir a Ajustes</button></div>';
+  return h+'<input id="fgn" placeholder="Nombre del gasto (ej. LUZ, GASOLINA)" style="margin-bottom:8px"><div class="grid"><select id="fgc">'+op(c.cats,"","Categoría…")+'</select><select id="fgt">'+op(c.tipos,"","Tipo…")+'</select></div><div class="grid"><input id="fgm" type="number" inputmode="decimal" step="0.01" placeholder="Monto"><select id="fgp">'+op(budgetAccounts(),"","Cuenta…")+'</select></div><button style="width:100%" onclick="addFijo()">Agregar gasto</button></div>'}
+function addFijo(){
+  var n=val("fgn"),c=val("fgc"),t=val("fgt"),m=parseFloat(val("fgm")),p=val("fgp");
+  if(!n||!c||!t||!p||!(m>0)){msg("Escribe el nombre, elige categoría, tipo y cuenta, y un monto mayor que 0.");return}
+  if(S.cfg.gastos.some(function(x){return x.n.toLowerCase()===n.toLowerCase()})){msg("Ya existe un gasto con ese nombre.");return}
+  var g={id:id(),n:n,c:c,t:t};S.cfg.gastos.push(g);S.pl.push({id:id(),tp:tpOf(t),g:g.id,m:m,p:p});
+  save();clr(["fgn","fgc","fgt","fgm","fgp"]);draw();msg("Gasto agregado")}
+function upG(gid,p,v){var g=by(S.cfg.gastos,gid);if(!g)return;
+  if(p==="n"){v=v.trim();if(!v)return;if(S.cfg.gastos.some(function(o){return o.id!==gid&&o.n.toLowerCase()===v.toLowerCase()})){msg("Ya existe un gasto con ese nombre.");draw();return}}
+  g[p]=v;if(p==="t")S.pl.forEach(function(x){if(x.g===gid)x.tp=tpOf(v)});save();draw()}
+function delFijo(pid){var x=by(S.pl,pid);if(!x)return;var g=x.g;
+  if(S.plan.some(function(y){return y.g===g})||S.sal.some(function(y){return y.g===g})){msg("Este gasto ya tiene movimientos y no se puede eliminar.");return}
+  S.pl=S.pl.filter(function(y){return y.g!==g});S.cfg.gastos=S.cfg.gastos.filter(function(y){return y.id!==g});V.ed="";save();draw();msg("Gasto eliminado")}
+function oc(fn,a,v){return ' onchange="'+fn+"('"+a.join("','")+"',this.value"+(v?",1":"")+')"'}
+function fijoForm(x){var g=by(S.cfg.gastos,x.g)||{};
+  return '<div class="ef"><label>Nombre</label><input value="'+esc(g.n)+'"'+oc("upG",[g.id,"n"])+'><label>Categoría</label><select'+oc("upG",[g.id,"c"])+'>'+op(S.cfg.cats,g.c,"—")+'</select><label>Tipo</label><select'+oc("upG",[g.id,"t"])+'>'+op(S.cfg.tipos,g.t,"—")+'</select><label>Monto</label><input type="number" inputmode="decimal" step="0.01" value="'+x.m+'"'+oc("up",["pl",x.id,"m"],1)+'><label>Cuenta</label><select'+oc("up",["pl",x.id,"p"])+'>'+op(budgetAccounts(),x.p,"—")+'</select><label>Exigir monto exacto en la salida (si no, se puede pagar en partes)</label><select'+oc("upG",[g.id,"ex"])+'>'+op([{id:"1",n:"Sí, debe ser el monto exacto"}],g.ex||"","—")+'</select><button class="ghost" onclick="delFijo(\''+x.id+'\')">Eliminar gasto</button></div>'}
 function grp(tp,t){
-  var L=S.pl.filter(function(x){return x.tp===tp}),tot=sum(L),sa=S.ps[tp],h='<div class="card">'+hd("g"+tp,t,"Total "+f(tot)+" · saldo "+f(R(sa-tot)));
+  var L=S.pl.filter(function(x){return x.tp===tp}),tot=sum(L),sa=S.ps[tp],h='<div class="card">'+hd("g"+tp,t,L.length+" gastos · total "+f(tot)+" · saldo "+f(R(sa-tot)));
   if(isO("g"+tp)){h+='<div class="kv"><span>Salario</span><input class="num" type="number" inputmode="decimal" step="0.01" value="'+sa+'" onchange="S.ps[\''+tp+'\']=+this.value||0;save();draw()"></div>'
-    +(L.length?L.map(function(x){var g=by(S.cfg.gastos,x.g);return '<div class="item"><div class="row" onclick="ted(\'pl:'+x.id+'\')" style="cursor:pointer"><b>'+(g?esc(g.n):"(eliminado)")+'</b><span class="amt">'+f(x.m)+'</span></div><div class="tag">'+nmx(S.cfg.cuentas,x.p)+'</div>'+(V.ed==="pl:"+x.id?form("pl",x,[["g","Gasto","s",S.cfg.gastos],["m","Monto","n"],["p","Cuenta","s",S.cfg.cuentas]]):'')+'</div>'}).join(""):'<div class="empty">Sin gastos en esta lista.</div>')
-    +(S.cfg.gastos.length&&S.cfg.cuentas.length?'<div class="grid" style="margin-top:10px"><select id="x'+tp+'g">'+op(S.cfg.gastos,"","Gasto…")+'</select><input id="x'+tp+'m" type="number" inputmode="decimal" step="0.01" placeholder="Monto"></div><select id="x'+tp+'p" style="margin-bottom:8px">'+op(S.cfg.cuentas,"","Cuenta…")+'</select><button style="width:100%" onclick="addPl(\''+tp+'\')">Agregar</button>':'')
+    +(L.length?L.map(function(x){var g=by(S.cfg.gastos,x.g)||{};return '<div class="item"><div class="row" onclick="ted(\'pl:'+x.id+'\')" style="cursor:pointer"><b>'+esc(g.n||"(eliminado)")+'</b><span class="amt">'+f(x.m)+'</span></div><div class="tag">'+(x.p?nmx(S.cfg.cuentas,x.p):'<span class="or">falta cuenta</span>')+' · '+nmx(S.cfg.cats,g.c)+' · '+nmx(S.cfg.tipos,g.t)+(g.ex==="1"?' · monto exacto':'')+'</div>'+(V.ed==="pl:"+x.id?fijoForm(x):'')+'</div>'}).join(""):'<div class="empty">Sin gastos en esta lista.</div>')
     +(L.length?'<button class="ghost" style="width:100%;margin-top:8px;border:1px solid var(--line)" onclick="loadPl(\''+tp+'\')">Cargar a la quincena actual</button>':'')}
   return h+'</div>'}
-function addPl(tp){var g=val("x"+tp+"g"),p=val("x"+tp+"p"),m=parseFloat(val("x"+tp+"m"));if(!g||!p||!(m>0)){msg("Elige gasto y cuenta, y escribe un monto.");return}S.pl.push({id:id(),tp:tp,g:g,m:m,p:p});save();clr(["x"+tp+"g","x"+tp+"m","x"+tp+"p"]);draw()}
-function loadPl(tp){var k=key(),l=S.pl.filter(function(x){return x.tp===tp&&!S.plan.some(function(y){return y.g===x.g&&y.k===k})});l.forEach(function(x){S.plan.push({id:id(),g:x.g,m:x.m,p:x.p,f:today(),nt:"",k:k})});save();draw();msg(l.length?"Cargados "+l.length+" gastos a "+nom(k):"Todos esos gastos ya estaban en esta quincena.")}
-function fij(){return grp("F","Gastos fijos")+grp("V","Gastos variables")}
+function loadPl(tp){var k=key(),l=S.pl.filter(function(x){return x.tp===tp&&x.m>0&&x.p&&!S.plan.some(function(y){return y.g===x.g&&y.k===k})});l.forEach(function(x){S.plan.push({id:id(),g:x.g,m:x.m,p:x.p,f:today(),nt:"",k:k})});save();draw();msg(l.length?"Cargados "+l.length+" gastos a "+nom(k):"Todos esos gastos ya estaban en esta quincena.")}
+function fij(){return fijTotales()+fijNuevo()+grp("F","Gastos fijos")+grp("V","Gastos variables")}
 /* ajustes */
 function cl(k,t){
   var L=S.cfg[k],h='<div class="card">'+hd("cf"+k,t,L.length+" elementos");
@@ -569,8 +604,8 @@ function tileImage(k,input){var file=input.files&&input.files[0];if(!file)return
 function aju(){
   S.ui=S.ui||{};
   return '<div class="card"><h2>📱 Zoom de pantalla</h2><div class="tag" style="margin-bottom:8px">Evita que la pantalla se amplíe accidentalmente con los dedos.</div><label style="display:flex;align-items:center;gap:10px;padding:8px 0"><input type="checkbox" style="width:22px;height:22px" ' +(S.ui.disableZoom?'checked ':'')+ 'onchange="toggleZoom(this.checked)"><span>Bloquear zoom de la aplicación</span></label><div class="tag">Puedes desactivarlo aquí cuando necesites ampliar el contenido.</div></div>'+themeCard()+'<div class="tag" style="margin-bottom:10px">Lo que agregues, cambies o elimines aquí aparece solo en todas las pantallas.</div>'
-   +'<div class="card"><h2>Efectos visuales</h2><label style="display:flex;align-items:center;gap:10px;padding:4px 0"><input type="checkbox" style="width:22px;height:22px" '+(S.ui.disableFade?'checked ':'')+'onchange="toggleFade(this.checked)"><span>Quitar el fondo oscurecido al abrir formularios y las animaciones</span></label></div>'+quickCard()+cl("cats","Categorías")+cl("tipos","Tipos de gasto")+cl("cuentas","Cuentas, métodos de pago y entidades")+asCard()+gr()+cl("gastos","Gastos (nombre, categoría y tipo)")+cl("ubic","Ubicaciones de deudas")+appIconSettings()+tileSettings()+icCard()
-   +'<div class="card"><h2>Respaldo y exportar</h2><div class="tag" style="margin-bottom:8px">Copia tus datos para guardarlos en Notas. Para Excel, pega los gastos en una hoja.</div><button style="width:100%;margin-bottom:8px" onclick="copyText(JSON.stringify(S),\'Respaldo copiado\')">Copiar respaldo completo</button><button style="width:100%;margin-bottom:12px" onclick="copyTsv()">Copiar gastos para Excel</button><textarea id="rs" placeholder="Pega aquí un respaldo para restaurarlo"></textarea><button class="ghost" style="width:100%;border:1px solid var(--line)" onclick="restaurar()">Restaurar respaldo (reemplaza todo)</button></div><div class="tag" style="text-align:center;margin-top:6px">Versión 12</div>'}
+   +'<div class="card"><h2>Efectos visuales</h2><label style="display:flex;align-items:center;gap:10px;padding:4px 0"><input type="checkbox" style="width:22px;height:22px" '+(S.ui.disableFade?'checked ':'')+'onchange="toggleFade(this.checked)"><span>Quitar el fondo oscurecido al abrir formularios y las animaciones</span></label></div>'+quickCard()+cl("cats","Categorías")+cl("tipos","Tipos de gasto")+cl("cuentas","Cuentas, métodos de pago y entidades")+asCard()+gr()+cl("ubic","Ubicaciones de deudas")+appIconSettings()+tileSettings()+icCard()
+   +'<div class="card"><h2>Respaldo y exportar</h2><div class="tag" style="margin-bottom:8px">Copia tus datos para guardarlos en Notas. Para Excel, pega los gastos en una hoja.</div><button style="width:100%;margin-bottom:8px" onclick="copyText(JSON.stringify(S),\'Respaldo copiado\')">Copiar respaldo completo</button><button style="width:100%;margin-bottom:12px" onclick="copyTsv()">Copiar gastos para Excel</button><textarea id="rs" placeholder="Pega aquí un respaldo para restaurarlo"></textarea><button class="ghost" style="width:100%;border:1px solid var(--line)" onclick="restaurar()">Restaurar respaldo (reemplaza todo)</button></div><div class="tag" style="text-align:center;margin-top:6px">Versión 13</div>'}
 function toggleFade(enabled){S.ui=S.ui||{};S.ui.disableFade=!!enabled;save();applyFadeSetting();draw()}
 function applyFadeSetting(){document.body.classList.toggle("no-fade",!!(S&&S.ui&&S.ui.disableFade))}
 function toggleZoom(enabled){
