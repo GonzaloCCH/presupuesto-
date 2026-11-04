@@ -301,9 +301,13 @@ function kv(a,b){return '<div class="kv"><span>'+a+'</span><b>'+b+'</b></div>'}
 function head(){return '<div class="grid"><input type="month" value="'+V.mes+'" onchange="V.mes=this.value||V.mes;V.auto=false;draw()"><select onchange="V.q=+this.value;V.auto=false;draw()"><option value="1"'+(V.q==1?" selected":"")+'>1ª quincena</option><option value="2"'+(V.q==2?" selected":"")+'>2ª quincena</option></select></div>'}
 /* líneas */
 function lineP(x){
-  var g=by(S.cfg.gastos,x.g)||{n:"(eliminado)"},p=P(x.g,x.k),u=U(x.g,x.k),s=stt(p,u),low=s.so>0&&s.so<=p*0.2;
-  return '<div class="item item-editable"><div class="row" onclick="ted(\'plan:'+x.id+'\')" style="cursor:pointer"><b class="'+s.c+'">'+esc(g.n)+'</b><span class="amt '+s.c+'">'+f(x.m)+'</span><button class="delete-x '+s.c+'" title="Eliminar gasto" onclick="event.stopPropagation();rm(\'plan\',\''+x.id+'\')">×</button></div><div class="tag">'+s.t+(low?' · por agotarse':'')+' · Salida '+f(u)+' · Sobra '+f(s.so)+'</div>'+(V.ed==="plan:"+x.id?'<div class="tag" style="margin-top:6px">El monto y la cuenta solo se cambian en Gastos fijos. Aquí puedes ajustar la fecha o las notas, o eliminar el gasto.</div>'+form("plan",x,[["f","Fecha","d"],["nt","Notas","t"]]):'')+'</div>'}
-function salRows(all){var ac={};return S.sal.filter(function(x){return all||x.k===key()}).map(function(x){var kk=x.g+"|"+x.k;ac[kk]=(ac[kk]||0)+x.m;var p=x.sob?0:P(x.g,x.k);return {x:x,p:p,a:ac[kk],s:stt(p,ac[kk])}})}
+  var g=by(S.cfg.gastos,x.g)||{n:"(eliminado)"},b=bucketsG(x.g,null,null).list.filter(function(z){return z.k===x.k})[0]||{p:0,used:0,rem:0,uses:[]},s=stt(b.p,b.used),low=s.so>0&&s.so<=b.p*0.2,cin=carryG(x.g,x.k),
+  later=b.uses.filter(function(u){return (u.k||"")>x.k});
+  return '<div class="item item-editable"><div class="row" onclick="ted(\'plan:'+x.id+'\')" style="cursor:pointer"><b class="'+s.c+'">'+esc(g.n)+'</b><span class="amt '+s.c+'">'+f(x.m)+'</span><button class="delete-x '+s.c+'" title="Eliminar gasto" onclick="event.stopPropagation();rm(\'plan\',\''+x.id+'\')">×</button></div><div class="tag">'+s.t+(low?' · por agotarse':'')+' · Salida '+f(b.used)+' · Sobra '+f(s.so)+'</div>'
+   +(cin>0.004?'<div class="tag">Saldo anterior '+f(cin)+' ('+carryDet(x.g,x.k)+') · Total disponible '+f(remG(x.g,x.k))+'</div>':'')
+   +later.map(function(u){return '<div class="tag rd">Usado en '+qs(u.k)+' · '+fd(u.f)+' · '+f(u.m)+'</div>'}).join("")
+   +(V.ed==="plan:"+x.id?'<div class="tag" style="margin-top:6px">El monto y la cuenta solo se cambian en Gastos fijos. Aquí puedes ajustar la fecha o las notas, o eliminar el gasto.</div>'+form("plan",x,[["f","Fecha","d"],["nt","Notas","t"]]):'')+'</div>'}
+function salRows(all){var ac={};return S.sal.filter(function(x){return all||x.k===key()}).map(function(x){var kk=x.g+"|"+x.k;ac[kk]=(ac[kk]||0)+x.m;var p=x.sob?0:R(carryG(x.g,x.k)+P(x.g,x.k));return {x:x,p:p,a:ac[kk],s:stt(p,ac[kk])}})}
 function lineS(r){
   var x=r.x,g=by(S.cfg.gastos,x.g)||{n:"(eliminado)"},name=x.gn||g.n;
   return '<div class="item item-editable"><div class="row" onclick="ted(\'sal:'+x.id+'\')" style="cursor:pointer"><b class="'+(x.sob?'or':r.s.c)+'">'+esc(name)+'</b><span class="amt '+(x.sob?'or':isCardAcct(x.p)?'rd':r.s.c)+'">'+f(x.m)+'</span><button class="delete-x '+(x.sob?'or':isCardAcct(x.p)?'rd':r.s.c)+'" title="Eliminar salida" onclick="event.stopPropagation();rm(\'sal\',\''+x.id+'\')">×</button></div>'
@@ -312,8 +316,8 @@ function lineS(r){
 function backPreview(){
   if(!V.sheet)return "";
   if(V.sheet==="p"){
-    var g=V.previewG||"",x=by(S.cfg.gastos,g),p=g?P(g,key()):0,u=g?U(g,key()):0,st=stt(p,u);
-    return '<div id="bgPreview" class="card"><h2>Presupuesto detrás del formulario</h2>'+(x?'<div class="kv"><span>'+esc(x.n)+'</span><b>'+f(p)+'</b></div>'+kv("Salidas registradas",f(u))+kv("Disponible",'<span class="'+st.c+'">'+f(st.so)+'</span>'):'<div class="empty">'+(preGastos().length?"Selecciona un gasto para consultar su presupuesto.":"Ya agregaste todos tus gastos a esta quincena.")+'</div>')+'</div>';
+    var g=V.previewG||"",x=by(S.cfg.gastos,g),p=g?P(g,key()):0,u=g?U(g,key()):0,st=stt(p,u),cin=g?carryG(g,key()):0;
+    return '<div id="bgPreview" class="card"><h2>Presupuesto detrás del formulario</h2>'+(x?'<div class="kv"><span>'+esc(x.n)+'</span><b>'+f(p)+'</b></div>'+kv("Salidas registradas",f(u))+(cin>0.004?kv("Saldo anterior",f(cin))+kv("Total disponible",'<span class="ok">'+f(R(cin+st.so))+'</span>'):kv("Disponible",'<span class="'+st.c+'">'+f(st.so)+'</span>')):'<div class="empty">'+(preGastos().length?"Selecciona un gasto para consultar su presupuesto.":"Ya agregaste todos tus gastos a esta quincena.")+'</div>')+'</div>';
   }
   var rows=S.sal.filter(function(x){return x.k===key()}).slice().reverse().slice(0,5);
   return '<div id="bgPreview" class="card"><h2>Últimas salidas de esta quincena</h2>'+(rows.length?rows.map(function(x){var g=by(S.cfg.gastos,x.g)||{};return '<div class="kv"><span>'+esc(x.gn||g.n||"Salida")+' · '+fd(x.f)+'</span><b>'+f(x.m)+'</b></div>'}).join(""):'<div class="empty">Aún no hay salidas registradas.</div>')+'</div>';
@@ -346,17 +350,29 @@ function ini(){
 /* formularios (hoja inferior) */
 
 /* ---- Reglas de gastos, salidas y cuentas ---- */
-function remG(g,k){k=k||key();return R(P(g,k)-U(g,k))}
+function qs(k){if(!k)return "";var a=k.split("-");return (a[2]==1?"1ª":"2ª")+" "+MES[+a[1]-1].slice(0,3)+" "+a[0]}
+function bucketsG(g,lt,le){
+  var bs={},ks=[];
+  S.plan.forEach(function(x){if(x.g===g){if(!bs[x.k]){bs[x.k]={k:x.k,p:0,used:0,uses:[]};ks.push(x.k)}bs[x.k].p=R(bs[x.k].p+Number(x.m))}});
+  S.sob.forEach(function(x){if(x.g===g){if(!bs[x.k]){bs[x.k]={k:x.k,p:0,used:0,uses:[]};ks.push(x.k)}bs[x.k].p=R(bs[x.k].p+Number(x.m))}});
+  ks.sort();
+  var ss=S.sal.map(function(x,i){return {x:x,i:i}}).filter(function(o){var k=o.x.k||"";return o.x.g===g&&(!lt||k<lt)&&(!le||k<=le)}).sort(function(a,b){return (a.x.k||"").localeCompare(b.x.k||"")||(a.x.f||"").localeCompare(b.x.f||"")||a.i-b.i});
+  ss.forEach(function(o){var left=Number(o.x.m);
+    ks.forEach(function(k){if(left<=0.004||k>(o.x.k||""))return;var b=bs[k],rem=R(b.p-b.used);if(rem<=0.004)return;var t=Math.min(rem,left);b.used=R(b.used+t);b.uses.push({k:o.x.k,f:o.x.f,m:R(t)});left=R(left-t)})});
+  return {list:ks.map(function(k){var b=bs[k];b.rem=R(b.p-b.used);return b})}}
+function remG(g,k){k=k||key();var r=0;bucketsG(g,null,k).list.forEach(function(b){if(b.k<=k)r+=b.rem});return Math.max(0,R(r))}
+function carryG(g,k){k=k||key();var r=0;bucketsG(g,k,null).list.forEach(function(b){if(b.k<k)r+=b.rem});return Math.max(0,R(r))}
+function carryDet(g,k){k=k||key();return bucketsG(g,k,null).list.filter(function(b){return b.k<k&&b.rem>0.004}).map(function(b){return qs(b.k)+" "+f(b.rem)}).join(" · ")}
 function isFixedG(g){var x=by(S.cfg.gastos,g);return !!(x&&x.ex==="1")}
 function tplFor(g){return S.pl.filter(function(p){return p.g===g&&p.tp==="F"})[0]||S.pl.filter(function(p){return p.g===g})[0]}
 function salGastos(){var k=key();return S.cfg.gastos.filter(function(g){return remG(g.id,k)>0.004})}
 function preOpts(){var sel=V.previewG||"";return '<option value="">Gasto…</option>'+preGastos().map(function(g){var t=tplFor(g.id),okk=t&&t.m>0&&t.p;return '<option value="'+g.id+'"'+(g.id===sel?' selected':'')+'>'+esc(g.n)+(okk?'':' · sin monto')+'</option>'}).join("")}
 function preGastos(){var k=key();return S.cfg.gastos.filter(function(g){return !S.plan.some(function(x){return x.g===g.id&&x.k===k})})}
 function alwaysSal(){return (S.alwaysSal||[]).filter(function(i){return by(S.cfg.cuentas,i)})}
-function salAccts(g){var ids=[],k=key();S.plan.forEach(function(x){if(x.g===g&&x.k===k&&ids.indexOf(x.p)<0)ids.push(x.p)});alwaysSal().forEach(function(i){if(ids.indexOf(i)<0)ids.push(i)});return ids.map(function(i){return by(S.cfg.cuentas,i)}).filter(Boolean)}
-function salAcctOpts(g){if(!g)return '<option value="">Elige primero el gasto…</option>';var def=(S.plan.filter(function(x){return x.g===g&&x.k===key()})[0]||{}).p;return '<option value="">Cuenta…</option>'+salAccts(g).map(function(c){return '<option value="'+c.id+'"'+(c.id===def&&!isCardAcct(c.id)?' selected':'')+'>'+esc(c.n)+(isCardAcct(c.id)?' 💳':'')+'</option>'}).join("")}
+function salAccts(g){var ids=[],k=key();S.plan.filter(function(x){return x.g===g&&x.k<=k}).sort(function(a,b){return a.k<b.k?1:a.k>b.k?-1:0}).forEach(function(x){if(ids.indexOf(x.p)<0)ids.push(x.p)});alwaysSal().forEach(function(i){if(ids.indexOf(i)<0)ids.push(i)});return ids.map(function(i){return by(S.cfg.cuentas,i)}).filter(Boolean)}
+function salAcctOpts(g){if(!g)return '<option value="">Elige primero el gasto…</option>';var k=key(),lp=S.plan.filter(function(x){return x.g===g&&x.k<=k}).sort(function(a,b){return a.k<b.k?1:a.k>b.k?-1:0})[0],def=lp&&lp.p;return '<option value="">Cuenta…</option>'+salAccts(g).map(function(c){return '<option value="'+c.id+'"'+(c.id===def&&!isCardAcct(c.id)?' selected':'')+'>'+esc(c.n)+(isCardAcct(c.id)?' 💳':'')+'</option>'}).join("")}
 function onSalG(){var g=val("sg");V.salG=g;var sp=document.getElementById("sp"),sm=document.getElementById("sm");if(sp)sp.innerHTML=salAcctOpts(g);if(sm)sm.value=g&&remG(g)>0?remG(g):"";sinfo();refreshPreview()}
-function onPreG(){var g=val("pg");V.previewG=g;var t=g?tplFor(g):null,pm=document.getElementById("pm"),pp=document.getElementById("pp");if(pm)pm.value=t?t.m:"";if(pp)pp.value=(t&&by(S.cfg.cuentas,t.p)&&!isCardAcct(t.p))?t.p:"";refreshPreview()}
+function onPreG(){var g=val("pg");V.previewG=g;var t=g?tplFor(g):null,pm=document.getElementById("pm"),pp=document.getElementById("pp");if(pm)pm.value=t?t.m:"";piInfo();if(pp)pp.value=(t&&by(S.cfg.cuentas,t.p)&&!isCardAcct(t.p))?t.p:"";refreshPreview()}
 function sbAcctOpts(){return '<option value="">Cuenta con sobrante…</option>'+S.cfg.cuentas.filter(function(c){return surplusAcct(c.id)>0.004}).map(function(c){return '<option value="'+c.id+'">'+esc(c.n)+' · '+f(surplusAcct(c.id))+'</option>'}).join("")}
 function onSbp(){var p=val("sbp"),m=document.getElementById("sbm");if(m)m.value=p?Math.max(0,surplusAcct(p)):"";sbinfo()}
 function tgAS(i){S.alwaysSal=S.alwaysSal||[];var k=S.alwaysSal.indexOf(i);if(k>=0)S.alwaysSal.splice(k,1);else S.alwaysSal.push(i);save();draw()}
@@ -382,7 +398,7 @@ function sheet(){
   var h='<div class="sh"><div class="row"><b>'+(V.sheet==="p"?"Nuevo gasto del presupuesto":sb?"Salida del sobrante":"Nueva salida")+'</b><button class="ghost" onclick="closeSh()">✕ Cerrar</button></div><div class="tag" style="margin:2px 0 10px">'+nom(key())+'</div>';
   if(V.sheet==="s")h+='<div class="grid"><button class="'+(V.sob?"alt":"")+'" onclick="V.sob=false;draw()">Gasto normal</button><button class="'+(V.sob?"":"alt")+'" onclick="V.sob=true;draw()">Del sobrante</button></div>';
   if(!ok)return h+'<div class="empty">Primero crea '+(sb?'tus cuentas':'tus gastos y cuentas')+' en Ajustes.</div><button style="width:100%" onclick="closeSh();go(\'aju\')">Ir a Ajustes</button></div>';
-  if(V.sheet==="p")return h+'<div class="grid"><select id="pg" onchange="onPreG()">'+preOpts()+'</select><input id="pm" readonly placeholder="Monto" style="opacity:.85"></div><div class="grid"><select id="pp" disabled style="opacity:.85">'+op(budgetAccounts(),"","Cuenta…")+'</select><input id="pf" type="date" value="'+today()+'"></div><div class="tag" style="margin-bottom:8px">El monto y la cuenta vienen de Gastos fijos. Para cambiarlos, edítalos allí.</div><input id="pn" placeholder="Notas (opcional)" style="margin-bottom:8px"><button style="width:100%" onclick="addP()">Guardar gasto</button></div>';
+  if(V.sheet==="p")return h+'<div class="grid"><select id="pg" onchange="onPreG()">'+preOpts()+'</select><input id="pm" readonly placeholder="Monto" style="opacity:.85"></div><div class="grid"><select id="pp" disabled style="opacity:.85">'+op(budgetAccounts(),"","Cuenta…")+'</select><input id="pf" type="date" value="'+today()+'"></div><div class="tag" style="margin-bottom:8px">El monto y la cuenta vienen de Gastos fijos. Para cambiarlos, edítalos allí.</div><div id="pi" class="tag" style="margin-bottom:8px"></div><input id="pn" placeholder="Notas (opcional)" style="margin-bottom:8px"><button style="width:100%" onclick="addP()">Guardar gasto</button></div>';
   if(sb)return h+'<input id="sbn" list="gl" placeholder="Nombre del gasto" style="margin-bottom:8px"><datalist id="gl">'+c.gastos.map(function(x){return '<option value="'+esc(x.n)+'">'}).join("")+'</datalist><div class="grid"><select id="sbc">'+op(c.cats,"","Categoría…")+'</select><select id="sbt">'+op(c.tipos,"","Tipo…")+'</select></div><div class="grid"><input id="sbm" type="number" inputmode="decimal" step="0.01" placeholder="Monto"><select id="sbp" onchange="onSbp()">'+sbAcctOpts()+'</select></div><div class="grid"><input id="sbf" type="date" value="'+today()+'"><input id="sbo" placeholder="Notas (opcional)"></div><div id="sbi" class="tag" style="margin-bottom:8px"></div><button style="width:100%" onclick="addSb()">Guardar salida del sobrante</button></div>';
   return h+'<div class="grid"><select id="sg" onchange="onSalG()">'+op(salGastos(),V.salG||"","Gasto…")+'</select><input id="sm" type="number" inputmode="decimal" step="0.01" placeholder="Monto"></div><div class="grid"><select id="sp" onchange="sinfo()">'+salAcctOpts(V.salG||"")+'</select><input id="sf" type="date" value="'+today()+'"></div><input id="sn" placeholder="Notas (opcional)" style="margin-bottom:8px"><div id="si" class="tag" style="margin-bottom:8px"></div><button style="width:100%" onclick="addS()">Guardar salida</button></div>'}
 function addSb(){
@@ -401,10 +417,13 @@ function addP(){
   S.plan.push({id:id(),g:g,m:t.m,p:t.p,f:val("pf")||today(),nt:val("pn"),k:key()});save();V.previewG="";clr(["pg","pm","pp","pn"]);draw();msg("Gasto agregado al presupuesto")}
 function sinfo(){
   var g=val("sg"),p=val("sp"),e=document.getElementById("si");if(!e)return;var h="";
-  if(!g&&!salGastos().length)h+='<span class="or">No hay gastos con saldo disponible en esta quincena.</span><br>';
-  if(g){var pr=P(g,key()),u=U(g,key()),s=stt(pr,u),fx=isFixedG(g);h+='Saldo asignado: <b class="'+s.c+'">'+f(s.so)+'</b> (presupuesto '+f(pr)+' · usado '+f(u)+')<br>'+(fx?'<b>Este gasto exige el monto exacto: '+f(s.so)+'</b>':'Puedes pagar una parte; no puedes pasarte de '+f(s.so))+'<br>'}
+  if(!g&&!salGastos().length)h+='<span class="or">No hay gastos con saldo disponible. Agrégalos al presupuesto primero.</span><br>';
+  if(g){var k=key(),rem=remG(g),cin=carryG(g,k),pr=P(g,k),fx=isFixedG(g),use=bucketsG(g,null,k).list.filter(function(b){return b.k<=k&&b.rem>0.004}).map(function(b){return qs(b.k)+" "+f(b.rem)}).join(" · ");
+    h+='Disponible: <b class="'+(rem>0?"ok":"rd")+'">'+f(rem)+'</b> ('+(cin>0.004?'saldo anterior '+f(cin)+' + esta quincena '+f(pr):'asignado '+f(pr))+')<br>'+(use?'<span class="tag">Se descuenta primero de: '+use+'</span><br>':'')+(fx?'<b>Este gasto exige el monto exacto: '+f(rem)+'</b>':'Puedes pagar una parte; no puedes pasarte de '+f(rem))+'<br>'}
   if(p){var c=by(S.cfg.cuentas,p),a=c?ac(c):null;if(a)h+=isCardAcct(p)?'Tarjeta · crédito disponible '+f(Math.max(0,(S.tc.lim||0)-cardDebt())):'Disponible en la cuenta: <b class="'+(a.d<0?"or":"ok")+'">'+f(a.d)+'</b>'}
   e.innerHTML=h}
+function piInfo(){var e=document.getElementById("pi");if(!e)return;var g=val("pg"),k=key(),c=g?carryG(g,k):0;e.innerHTML=g&&c>0.004?'<b>Este gasto ya tiene un saldo anterior de '+f(c)+'</b> ('+carryDet(g,k)+'). Se suma al total disponible para las salidas.':''}
+
 function addS(){
   var g=val("sg"),m=parseFloat(val("sm")),p=val("sp");
   if(!g||!p||!(m>0)){msg("Elige gasto y cuenta, y escribe un monto mayor que 0.");return}
@@ -651,7 +670,7 @@ function aju(){
   S.ui=S.ui||{};
   return '<div class="card"><h2>📱 Zoom de pantalla</h2><div class="tag" style="margin-bottom:8px">Evita que la pantalla se amplíe accidentalmente con los dedos.</div><label style="display:flex;align-items:center;gap:10px;padding:8px 0"><input type="checkbox" style="width:22px;height:22px" ' +(S.ui.disableZoom?'checked ':'')+ 'onchange="toggleZoom(this.checked)"><span>Bloquear zoom de la aplicación</span></label><div class="tag">Puedes desactivarlo aquí cuando necesites ampliar el contenido.</div></div>'+themeCard()+'<div class="tag" style="margin-bottom:10px">Lo que agregues, cambies o elimines aquí aparece solo en todas las pantallas.</div>'
    +'<div class="card"><h2>Efectos visuales</h2><label style="display:flex;align-items:center;gap:10px;padding:4px 0"><input type="checkbox" style="width:22px;height:22px" '+(S.ui.disableFade?'checked ':'')+'onchange="toggleFade(this.checked)"><span>Quitar el fondo oscurecido al abrir formularios y las animaciones</span></label></div>'+quickCard()+cl("cats","Categorías")+cl("tipos","Tipos de gasto")+cl("cuentas","Cuentas, métodos de pago y entidades")+asCard()+gr()+cl("ubic","Ubicaciones de deudas")+appIconSettings()+tileSettings()+icCard()
-   +'<div class="card"><h2>Respaldo y exportar</h2><div class="tag" style="margin-bottom:8px">Copia tus datos para guardarlos en Notas. Para Excel, pega los gastos en una hoja.</div><button style="width:100%;margin-bottom:8px" onclick="copyText(JSON.stringify(S),\'Respaldo copiado\')">Copiar respaldo completo</button><button style="width:100%;margin-bottom:12px" onclick="copyTsv()">Copiar gastos para Excel</button><textarea id="rs" placeholder="Pega aquí un respaldo para restaurarlo"></textarea><button class="ghost" style="width:100%;border:1px solid var(--line)" onclick="restaurar()">Restaurar respaldo (reemplaza todo)</button></div><div class="tag" style="text-align:center;margin-top:6px">Versión 17</div>'}
+   +'<div class="card"><h2>Respaldo y exportar</h2><div class="tag" style="margin-bottom:8px">Copia tus datos para guardarlos en Notas. Para Excel, pega los gastos en una hoja.</div><button style="width:100%;margin-bottom:8px" onclick="copyText(JSON.stringify(S),\'Respaldo copiado\')">Copiar respaldo completo</button><button style="width:100%;margin-bottom:12px" onclick="copyTsv()">Copiar gastos para Excel</button><textarea id="rs" placeholder="Pega aquí un respaldo para restaurarlo"></textarea><button class="ghost" style="width:100%;border:1px solid var(--line)" onclick="restaurar()">Restaurar respaldo (reemplaza todo)</button></div><div class="tag" style="text-align:center;margin-top:6px">Versión 18</div>'}
 function toggleFade(enabled){S.ui=S.ui||{};S.ui.disableFade=!!enabled;save();applyFadeSetting();draw()}
 function applyFadeSetting(){document.body.classList.toggle("no-fade",!!(S&&S.ui&&S.ui.disableFade))}
 function toggleZoom(enabled){
@@ -701,6 +720,7 @@ function draw(){
   sh.innerHTML=sheet();sh.className=V.sheet?"on":"";
   for(var i in m){var e=document.getElementById(i);if(e&&e.tagName&&isF.test(e.tagName))e.value=m[i]}
   if(document.getElementById("si"))sinfo();
+  if(document.getElementById("pi"))piInfo();
   if(document.getElementById("sbi"))sbinfo();
   var th=document.getElementById("themePick");if(th){try{th.value=localStorage.getItem("presupuesto2-theme")||"system"}catch(e){th.value="system"}}
   tp.className="st-"+S.ui.st;tp.innerHTML="";applyAppIcon();
